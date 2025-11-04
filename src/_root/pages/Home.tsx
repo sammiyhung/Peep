@@ -1,4 +1,3 @@
-import { Models } from "appwrite";
 import { useNavigate } from 'react-router-dom';
 import { Loader, PostCard, UserCard } from "@/components/shared";
 import { useGetRecentPosts, useGetUsers } from "@/lib/react-query/queries";
@@ -47,8 +46,8 @@ const Home = () => {
             <Loader />
           ) : (
             <ul className="flex flex-col flex-1 gap-9 w-full ">
-              {posts?.documents.map((post: Models.Document) => (
-                <li key={post.$id} className="flex justify-center w-full">
+              {posts?.documents.map((post: any) => (
+                <li key={post._id} className="flex justify-center w-full">
                   <PostCard post={post} />
                 </li>
               ))}
@@ -63,8 +62,8 @@ const Home = () => {
           <Loader />
         ) : (
           <ul className="grid 2xl:grid-cols-2 gap-6">
-            {creators?.documents.map((creator) => (
-              <li key={creator?.$id}>
+            {creators?.documents.map((creator: any) => (
+              <li key={creator?._id}>
                 <UserCard user={creator} />
               </li>
             ))}

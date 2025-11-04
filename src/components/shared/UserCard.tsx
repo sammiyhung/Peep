@@ -1,10 +1,9 @@
-import { Models } from 'appwrite';
 import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
 
 import { Button } from '../ui/button'; // Assuming you have a Button component
 
 type UserCardProps = {
-  user: Models.Document;
+  user: any;
 };
 
 const UserCard = ({ user }: UserCardProps) => {
@@ -13,7 +12,7 @@ const UserCard = ({ user }: UserCardProps) => {
   return (
     <div className="user-card flex flex-col items-center justify-center p-4 border rounded-lg shadow-md">
       {/* Profile Link */}
-      <Link to={`/profile/${user.$id}`} className="flex flex-col items-center justify-center">
+      <Link to={`/profile/${user._id}`} className="flex flex-col items-center justify-center">
         <img
           src={user.imageUrl || '/assets/icons/profile-placeholder.svg'}
           alt="user-profile"
@@ -30,7 +29,7 @@ const UserCard = ({ user }: UserCardProps) => {
         type="button"
         size="sm"
         className="shad-button_primary px-5 mt-3"
-        onClick={() => navigate(`/chat/${user.$id}`)} // Use navigate to programmatically navigate
+        onClick={() => navigate(`/chat/${user._id}`)} // Use navigate to programmatically navigate
       >
         Chat
       </Button>

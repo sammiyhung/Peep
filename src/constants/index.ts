@@ -12,12 +12,12 @@ export const sidebarLinks = [
   {
     imgURL: "/assets/icons/people.svg",
     route: "/all-users",
-    label: "Students",
+    label: "Peeps",
   },
   {
-    imgURL: "/assets/icons/bookmark.svg",
-    route: "/chat/${user.$id}",
-    label: "Chat",
+    imgURL: "/assets/icons/chat.svg",
+    route: "/chats",
+    label: "Chats",
   },
   {
     imgURL: "/assets/icons/gallery-add.svg",
@@ -43,13 +43,13 @@ export const bottombarLinks = [
     label: "Create",
   },
   {
-    imgURL: "/assets/icons/bookmark.svg",
-    route: "/chat/${user.$id}",
-    label: "Chat",
+    imgURL: "/assets/icons/chat.svg",
+    route: "/chats",
+    label: "Chats",
   },
   {
     imgURL: "/assets/icons/people.svg",
     route: "/all-users",
-    label: "Students",
+    label: "Peeps",
   },
 ];

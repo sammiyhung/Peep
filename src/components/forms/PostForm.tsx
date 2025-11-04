@@ -1,5 +1,4 @@
 import * as z from "zod";
-import { Models } from "appwrite";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,7 +21,7 @@ import { FileUploader, Loader } from "@/components/shared";
 import { useCreatePost, useUpdatePost } from "@/lib/react-query/queries";
 
 type PostFormProps = {
-  post?: Models.Document;
+  post?: any;
   action: "Create" | "Update";
 };
 
@@ -52,7 +51,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
     if (post && action === "Update") {
       const updatedPost = await updatePost({
         ...value,
-        postId: post.$id,
+        postId: post._id,
         imageId: post.imageId,
         imageUrl: post.imageUrl,
       });
@@ -62,7 +61,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
           title: `${action} post failed. Please try again.`,
         });
       }
-      return navigate(`/posts/${post.$id}`);
+      return navigate(`/posts/${post._id}`);
     }
 
     // ACTION = CREATE

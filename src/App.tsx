@@ -11,6 +11,7 @@ import {
   UpdateProfile,
   AllUsers,
   Chat,
+  ChatList,
 } from "@/_root/pages";
 import AuthLayout from "./_auth/AuthLayout";
 import RootLayout from "./_root/RootLayout";
@@ -35,6 +36,7 @@ const App = () => {
           <Route index element={<Home />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/saved" element={<Saved />} />
+          <Route path="/chats" element={<ChatList />} />
           <Route path="/chat/:userId" element={<Chat />} />
           <Route path="/all-users" element={<AllUsers />} />
           <Route path="/create-post" element={<CreatePost />} />

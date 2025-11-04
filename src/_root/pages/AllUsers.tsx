@@ -16,7 +16,7 @@ const AllUsers = () => {
   }
 
   // Filter the users based on the search query
-  const filteredUsers = creators?.documents?.filter((creator) =>
+  const filteredUsers = creators?.documents?.filter((creator: any) =>
     creator?.username?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     creator?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
@@ -26,7 +26,7 @@ const AllUsers = () => {
       <div className="user-container">
         {/* Header Section with Buttons */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="h3-bold md:h2-bold text-left w-full">Find Students</h2>
+          <h2 className="h3-bold md:h2-bold text-left w-full">Find Peeps</h2>
         </div>
 
         {/* Search Bar */}
@@ -47,8 +47,8 @@ const AllUsers = () => {
           <ul className="user-grid">
             {/* Display filtered users */}
             {filteredUsers?.length > 0 ? (
-              filteredUsers.map((creator) => (
-                <li key={creator?.$id} className="flex-1 min-w-[200px] w-full">
+              filteredUsers.map((creator: any) => (
+                <li key={creator?._id} className="flex-1 min-w-[200px] w-full">
                   <UserCard user={creator} />
                 </li>
               ))

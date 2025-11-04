@@ -1,14 +1,14 @@
 // Chat.tsx
 import { useEffect, useState, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { sendMessage as sendMessageToAppwrite, fetchMessages, getChatPartner } from './ChatService'; 
-import { getCurrentUser } from '@/lib/appwrite/api';
-import { Models } from 'appwrite';
+import { fetchMessages, getChatPartner } from './ChatService'; 
+import { getCurrentUser } from '@/lib/api/api';
+import { api } from '@/lib/api/config';
 import io, { Socket } from 'socket.io-client'; // Socket.io client
 import TypingIndicator from './TypingIndicator'; // Typing indicator component
 
 
-const SOCKET_SERVER_URL = import.meta.env.REACT_APP_SOCKET_SERVER_URL || 'https://uniportkonnect-server.onrender.com'; // Your Socket.io server URL
+const SOCKET_SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:10000'; // Socket.io server URL (same as API)
 
 const Chat = () => {
   const { userId } = useParams(); 
@@ -16,7 +16,7 @@ const Chat = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [chatPartner, setChatPartner] = useState<Models.Document | null>(null);
+  const [chatPartner, setChatPartner] = useState<any | null>(null);
   const [isTyping, setIsTyping] = useState(false); // State to track typing status
   const socketRef = useRef<Socket | null>(null); // Ref to store socket instance
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref for typing timeout
@@ -31,6 +31,11 @@ const Chat = () => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
+  // States for Message CRUD
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
   
   // Ref for last message and message end
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -50,15 +55,47 @@ const Chat = () => {
       socketRef.current.emit('join', currentUserId);
     }
 
-    // Listen for incoming messages
+    // Listen for incoming messages from other user
     socketRef.current.on('receiveMessage', (messageData: any) => {
       setMessages((prevMessages) => [...prevMessages, {
+        _id: messageData._id,
         senderId: messageData.senderId,
-        content: messageData.message,
+        receiverId: messageData.receiverId,
+        content: messageData.content,
         timestamp: messageData.timestamp,
-        $id: `msg-${Date.now()}`, // Generate a unique ID or use server-generated IDs
+        edited: messageData.edited,
+        loading: false,
       }]);
       scrollToBottom();
+    });
+
+    // Listen for message saved confirmation (for sender)
+    socketRef.current.on('messageSaved', (messageData: any) => {
+      setMessages((prevMessages) =>
+        prevMessages.map(msg =>
+          msg._id === messageData.tempId
+            ? {
+                _id: messageData._id,
+                senderId: messageData.senderId,
+                receiverId: messageData.receiverId,
+                content: messageData.content,
+                timestamp: messageData.timestamp,
+                edited: messageData.edited,
+                loading: false,
+              }
+            : msg
+        )
+      );
+      scrollToBottom();
+    });
+
+    // Listen for message failed
+    socketRef.current.on('messageFailed', ({ tempId }: { tempId: string }) => {
+      setMessages((prevMessages) =>
+        prevMessages.map(msg =>
+          msg._id === tempId ? { ...msg, failed: true, loading: false } : msg
+        )
+      );
     });
 
     // Listen for typing indicators
@@ -72,12 +109,20 @@ const Chat = () => {
       }
     });
 
-    // Cleanup on unmount
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
-    };
+    // Listen for message deletion
+    socketRef.current.on('messageDeleted', ({ messageId }: { messageId: string }) => {
+      setMessages((prevMessages) => prevMessages.filter(msg => msg._id !== messageId));
+    });
+
+    // Listen for message editing
+    socketRef.current.on('messageEdited', ({ messageId, content }: { messageId: string; content: string }) => {
+      setMessages((prevMessages) =>
+        prevMessages.map(msg =>
+          msg._id === messageId ? { ...msg, content, edited: true } : msg
+        )
+      );
+    });
+
   }, [currentUserId, SOCKET_SERVER_URL]);
 
   useEffect(() => {
@@ -85,7 +130,7 @@ const Chat = () => {
       try {
         const currentUser = await getCurrentUser();
         if (currentUser) {
-          setCurrentUserId(currentUser.$id);
+          setCurrentUserId(currentUser._id);
         }
       } catch (error) {
         console.error('Error fetching current user:', error);
@@ -114,6 +159,17 @@ const Chat = () => {
         const messages = await fetchMessages(currentUserId, userId);
         setMessages(messages);
         scrollToBottom();
+        
+        // Mark messages as read when opening chat
+        try {
+          await api.put(`/api/messages/mark-read/${userId}`);
+          // Notify other user that unread count changed
+          socketRef.current?.emit('updateUnreadCount', { receiverId: userId });
+          // Also emit to self to update own badge
+          socketRef.current?.emit('updateUnreadCount', { receiverId: currentUserId });
+        } catch (error) {
+          console.error('Error marking messages as read:', error);
+        }
       }
     };
     loadMessages();
@@ -136,26 +192,28 @@ const Chat = () => {
       const timestamp = new Date().toISOString();
 
       try {
-        // 1. Emit the message via Socket.io
+        // Add temporary message with loading state
+        const tempId = `temp-${Date.now()}`;
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            _id: tempId,
+            senderId: currentUserId,
+            receiverId: userId,
+            content: messageContent,
+            timestamp: timestamp,
+            loading: true, // Mark as loading
+            edited: false,
+          },
+        ]);
+
+        // Emit the message via Socket.io with tempId
         socketRef.current?.emit('sendMessage', {
           senderId: currentUserId,
           receiverId: userId,
           message: messageContent,
+          tempId: tempId,
         });
-
-        // 2. Send the message to Appwrite for persistence
-        await sendMessageToAppwrite(currentUserId, userId, messageContent);
-
-        // Optionally, add the message to local state immediately
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {
-            senderId: currentUserId,
-            content: messageContent,
-            timestamp: timestamp,
-            $id: `msg-${Date.now()}`, // Generate a unique ID or use server-generated IDs
-          },
-        ]);
 
         setNewMessage('');
         scrollToBottom();
@@ -169,7 +227,14 @@ const Chat = () => {
     setNewMessage(e.target.value);
 
     if (socketRef.current && currentUserId && userId) {
+      // Emit typing for in-chat indicator
       socketRef.current.emit('typing', {
+        senderId: currentUserId,
+        receiverId: userId,
+      });
+
+      // Emit typing for chat list indicator
+      socketRef.current.emit('typingInChat', {
         senderId: currentUserId,
         receiverId: userId,
       });
@@ -182,7 +247,70 @@ const Chat = () => {
       // Set a timeout to reset typing indicator after 3 seconds of inactivity
       typingTimeoutRef.current = setTimeout(() => {
         setIsTyping(false);
+        // Emit stop typing for chat list
+        socketRef.current?.emit('stopTypingInChat', {
+          senderId: currentUserId,
+          receiverId: userId,
+        });
       }, 3000);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      // Delete from backend
+      await api.delete(`/api/messages/${messageId}`);
+
+      // Remove from local state
+      setMessages((prevMessages) => prevMessages.filter(msg => msg._id !== messageId));
+
+      // Emit Socket.io event to notify other user
+      socketRef.current?.emit('deleteMessage', {
+        messageId,
+        receiverId: userId,
+      });
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
+
+  const handleStartEdit = (messageId: string, content: string) => {
+    setEditingMessageId(messageId);
+    setEditingContent(content);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditingContent('');
+  };
+
+  const handleSaveEdit = async (messageId: string) => {
+    if (!editingContent.trim()) return;
+
+    try {
+      // Update on backend
+      await api.put(`/api/messages/${messageId}`, {
+        content: editingContent.trim(),
+      });
+
+      // Update local state
+      setMessages((prevMessages) =>
+        prevMessages.map(msg =>
+          msg._id === messageId ? { ...msg, content: editingContent.trim(), edited: true } : msg
+        )
+      );
+
+      // Emit Socket.io event to notify other user
+      socketRef.current?.emit('editMessage', {
+        messageId,
+        content: editingContent.trim(),
+        receiverId: userId,
+      });
+
+      setEditingMessageId(null);
+      setEditingContent('');
+    } catch (error) {
+      console.error('Error editing message:', error);
     }
   };
 
@@ -269,14 +397,20 @@ const Chat = () => {
   return (
     <div className="chat-page-container h-full flex flex-col justify-between w-full sm:overflow-x-hidden sm:overflow-y-hidden">
       {/* Header/Top Bar */}
-      <div className="chat-header bg-gray-900 flex items-center justify-between p-2 shadow-md relative">
+      <div className="chat-header flex items-center justify-between p-4 relative glass-card animate-fade-in" style={{
+        background: 'rgba(9, 9, 11, 0.8)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)'
+      }}>
         <div className="flex items-center">
-          <button onClick={() => navigate(-1)} className="back-button mr-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <button onClick={() => navigate('/chats')} className="back-button mr-2 hover:bg-gray-800 p-2 rounded-full transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <Link to={`/profile/${chatPartner?.$id}`} className="flex items-center">
+          <Link to={`/profile/${chatPartner?._id}`} className="flex items-center">
             <img src={chatPartner?.imageUrl || '/assets/icons/profile-placeholder.svg'} alt="Avatar" className="h-10 w-10 rounded-full mr-2" />
             <div>
               <p className="font-bold text-md text-white">{chatPartner?.name || 'Loading...'}</p>
@@ -431,15 +565,94 @@ const Chat = () => {
         {messages.map((message, index) => (
           <div 
             id={`message-${index}`} 
-            key={message.$id} 
-            className={`message-item m-2 ${message.senderId === currentUserId ? 'text-right' : 'text-left'}`}
+            key={message._id} 
+            className={`message-item m-2 ${message.senderId === currentUserId ? 'text-right' : 'text-left'} group`}
+            onMouseEnter={() => setHoveredMessageId(message._id)}
+            onMouseLeave={() => setHoveredMessageId(null)}
           >
-            <div className={`inline-block px-4 py-2 rounded-lg ${message.senderId === currentUserId ? 'bg-pink-500 text-white max-w-md' : 'bg-gray-200 text-gray-800 max-w-md'}`}>
-              <p>{renderMessageContent(message.content)}</p>
+            <div className="inline-block relative">
+              {editingMessageId === message._id ? (
+                // Edit mode
+                <div className="flex items-center gap-2 bg-gray-700 p-2 rounded-lg">
+                  <input
+                    type="text"
+                    value={editingContent}
+                    onChange={(e) => setEditingContent(e.target.value)}
+                    className="px-3 py-2 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSaveEdit(message._id);
+                      if (e.key === 'Escape') handleCancelEdit();
+                    }}
+                  />
+                  <button
+                    onClick={() => handleSaveEdit(message._id)}
+                    className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                  >
+                    ✓
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                // Display mode
+                <>
+                  <div className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                    message.loading 
+                      ? 'bg-gray-600 text-gray-300 opacity-60' 
+                      : message.senderId === currentUserId 
+                        ? 'bg-pink-500 text-white' 
+                        : 'bg-gray-200 text-gray-800'
+                  } max-w-md`}>
+                    <p className="flex-1">{renderMessageContent(message.content)}</p>
+                    {message.loading && (
+                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    )}
+                    {message.failed && (
+                      <span className="text-red-400 text-xs">Failed</span>
+                    )}
+                    {message.edited && !message.loading && (
+                      <span className="text-xs opacity-70 italic"> (edited)</span>
+                    )}
+                  </div>
+                  
+                  {/* Edit/Delete buttons - only show for own messages on hover, not for loading messages */}
+                  {message.senderId === currentUserId && hoveredMessageId === message._id && !message.loading && !message.failed && (
+                    <div className="absolute -top-8 right-0 flex gap-1 bg-gray-800 rounded-md p-1 shadow-lg">
+                      <button
+                        onClick={() => handleStartEdit(message._id, message.content)}
+                        className="p-1 hover:bg-gray-700 rounded text-white"
+                        title="Edit message"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteMessage(message._id)}
+                        className="p-1 hover:bg-gray-700 rounded text-red-400"
+                        title="Delete message"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+              
+              <small className="block text-xs text-gray-500 mt-1">
+                {new Date(message.timestamp).toLocaleTimeString()}
+              </small>
             </div>
-            <small className="block text-xs text-gray-500 mt-1">
-              {new Date(message.timestamp).toLocaleTimeString()}
-            </small>
           </div>
         ))}
         {/* Typing Indicator */}

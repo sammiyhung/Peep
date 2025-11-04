@@ -25,7 +25,7 @@ import {
   searchPosts,
   savePost,
   deleteSavedPost,
-} from "@/lib/appwrite/api";
+} from "@/lib/api/api";
 import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
 
 // ============================================================
@@ -65,8 +65,8 @@ export const useGetPosts = () => {
         return null;
       }
 
-      // Use the $id of the last document as the cursor.
-      const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
+      // Use the _id of the last document as the cursor.
+      const lastId = lastPage.documents[lastPage.documents.length - 1]._id;
       return lastId;
     },
   });
@@ -121,7 +121,7 @@ export const useUpdatePost = () => {
     mutationFn: (post: IUpdatePost) => updatePost(post),
     onSuccess: (data) => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.$id],
+        queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?._id],
       });
     },
   });
@@ -152,7 +152,7 @@ export const useLikePost = () => {
     }) => likePost(postId, likesArray),
     onSuccess: (data) => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.$id],
+        queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?._id],
       });
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
@@ -239,7 +239,7 @@ export const useUpdateUser = () => {
         queryKey: [QUERY_KEYS.GET_CURRENT_USER],
       });
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_USER_BY_ID, data?.$id],
+        queryKey: [QUERY_KEYS.GET_USER_BY_ID, data?._id],
       });
     },
   });

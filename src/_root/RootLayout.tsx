@@ -6,9 +6,11 @@ import LeftSidebar from "@/components/shared/LeftSidebar";
 
 const RootLayout = () => {
   const location = useLocation();
+  const isChatPage = location.pathname.startsWith('/chat/');
+  
   return (
     <div className="w-full md:flex">
-      {!location.pathname.includes('/chat') && (
+      {!isChatPage && (
           <Topbar />
       )}
       <LeftSidebar />
@@ -17,9 +19,8 @@ const RootLayout = () => {
         <Outlet />
       </section>
 
-      {!location.pathname.includes('/chat') && (
-          <Bottombar />
-      )}
+      {/* Show Bottombar on all pages including chat pages */}
+      <Bottombar />
     </div>
   );
 };

@@ -69,7 +69,7 @@ const Profile = () => {
             </div>
 
             <div className="flex gap-8 mt-10 items-center justify-center xl:justify-start flex-wrap z-20">
-              <StatBlock value={currentUser.posts.length} label="Posts" />
+              <StatBlock value={currentUser.posts?.length || 0} label="Posts" />
               <StatBlock value={0} label="Followers" />
               <StatBlock value={0} label="Following" />
             </div>
@@ -80,11 +80,11 @@ const Profile = () => {
           </div>
 
           <div className="flex justify-center gap-4">
-            <div className={`${user.id !== currentUser.$id && "hidden"}`}>
+            <div className={`${user.id !== currentUser._id && "hidden"}`}>
               <Link
-                to={`/update-profile/${currentUser.$id}`}
+                to={`/update-profile/${currentUser._id}`}
                 className={`h-12 bg-dark-4 px-5 text-light-1 flex-center gap-2 rounded-lg ${
-                  user.id !== currentUser.$id && "hidden"
+                  user.id !== currentUser._id && "hidden"
                 }`}>
                 <img
                   src={"/assets/icons/edit.svg"}
@@ -102,7 +102,7 @@ const Profile = () => {
                 type="button"
                 size="sm"
                 className="shad-button_primary px-5 mt-3"
-                onClick={() => navigate(`/chat/${currentUser.$id}`)} // Use navigate to programmatically navigate
+                onClick={() => navigate(`/chat/${currentUser._id}`)} // Use navigate to programmatically navigate
               >
                 Chat
               </Button>
@@ -111,7 +111,7 @@ const Profile = () => {
         </div>
       </div>
 
-      {currentUser.$id === user.id && (
+      {currentUser._id === user.id && (
         <div className="flex max-w-5xl w-full">
           <Link
             to={`/profile/${id}`}
@@ -145,9 +145,9 @@ const Profile = () => {
       <Routes>
         <Route
           index
-          element={<GridPostList posts={currentUser.posts} showUser={false} />}
+          element={<GridPostList posts={currentUser.posts || []} showUser={false} />}
         />
-        {currentUser.$id === user.id && (
+        {currentUser._id === user.id && (
           <Route path="/liked-posts" element={<LikedPosts />} />
         )}
       </Routes>

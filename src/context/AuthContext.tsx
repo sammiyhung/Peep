@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { createContext, useContext, useEffect, useState } from "react";
 
 import { IUser } from "@/types";
-import { getCurrentUser } from "@/lib/appwrite/api";
+import { getCurrentUser } from "@/lib/api/api";
 
 export const INITIAL_USER = {
   id: "",
@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const currentAccount = await getCurrentUser();
       if (currentAccount) {
         setUser({
-          id: currentAccount.$id,
+          id: currentAccount._id,
           name: currentAccount.name,
           username: currentAccount.username,
           email: currentAccount.email,
@@ -67,16 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const cookieFallback = localStorage.getItem("cookieFallback");
-    if (
-      cookieFallback === "[]" ||
-      cookieFallback === null ||
-      cookieFallback === undefined
-    ) {
+    const token = localStorage.getItem("token");
+    if (!token) {
       navigate("/sign-in");
+    } else {
+      checkAuthUser();
     }
-
-    checkAuthUser();
   }, []);
 
   const value = {

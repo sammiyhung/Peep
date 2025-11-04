@@ -1,4 +1,3 @@
-import { Models } from "appwrite";
 import { useNavigate } from 'react-router-dom';
 import { GridPostList, Loader } from "@/components/shared";
 import { useGetCurrentUser } from "@/lib/react-query/queries";
@@ -7,7 +6,7 @@ const Saved = () => {
   const { data: currentUser } = useGetCurrentUser();
   const navigate = useNavigate();
   const savePosts = (currentUser?.save || [])
-    .map((savePost: Models.Document) => ({
+    .map((savePost: any) => ({
       ...savePost.post,
       creator: {
         imageUrl: currentUser?.imageUrl, // Ensure currentUser exists here as well
