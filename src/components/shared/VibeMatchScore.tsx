@@ -43,7 +43,7 @@ const VibeMatchScore = ({ post, userMood }: VibeMatchScoreProps) => {
           <span className="small-medium text-light-2">Vibe Match</span>
         </div>
         <div className="flex items-center gap-2">
-          {postMood && <span className="text-lg">{postMood.emoji}</span>}
+          {postMood && <span className="text-lg">{postMood.value}</span>}
           <div className="flex items-center gap-1">
             <div className="w-20 h-2 bg-dark-4 rounded-full overflow-hidden">
               <div

@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Heart, Flame, Zap, Sparkles, MessageSquare } from "lucide-react";
 
 import { Button, Textarea } from "@/components/ui";
-import { Loader } from "@/components/shared";
 import { GridPostList, PostStats } from "@/components/shared";
 import { getComments, createComment, deleteComment, getPostReactions } from "@/lib/api/api";
 import { useToast } from "@/components/ui/use-toast";

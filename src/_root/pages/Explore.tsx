@@ -13,22 +13,7 @@ export type SearchResultProps = {
 
 const SearchResults = ({ isSearchFetching, searchedPosts }: SearchResultProps) => {
   if (isSearchFetching) {
-    return (
-      <div className="grid-container">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="relative min-w-80 h-80 animate-pulse">
-            <div className="h-full w-full bg-dark-4 rounded-[24px]"></div>
-            <div className="absolute bottom-0 left-0 right-0 p-5">
-              <div className="h-4 bg-dark-3 rounded w-3/4 mb-2"></div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-dark-3 rounded-full"></div>
-                <div className="h-3 bg-dark-3 rounded w-24"></div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return <GridPostList posts={[]} isLoading={true} />;
   } else if (searchedPosts && searchedPosts.documents.length > 0) {
     return <GridPostList posts={searchedPosts.documents} />;
   } else {
@@ -53,27 +38,9 @@ const Explore = () => {
     }
   }, [inView, searchValue]);
 
-  if (!posts)
-    return (
-      <div className="grid-container">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="relative min-w-80 h-80 animate-pulse">
-            <div className="h-full w-full bg-dark-4 rounded-[24px]"></div>
-            <div className="absolute bottom-0 left-0 right-0 p-5">
-              <div className="h-4 bg-dark-3 rounded w-3/4 mb-2"></div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-dark-3 rounded-full"></div>
-                <div className="h-3 bg-dark-3 rounded w-24"></div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-
   const shouldShowSearchResults = searchValue !== "";
   const shouldShowPosts = !shouldShowSearchResults && 
-    posts.pages.every((item) => item.documents.length === 0);
+    posts && posts.pages.every((item) => item.documents.length === 0);
 
   return (
     <div className="explore-container">
@@ -123,7 +90,9 @@ const Explore = () => {
       </div>
 
       <div className="flex flex-wrap gap-9 w-full max-w-5xl">
-        {shouldShowSearchResults ? (
+        {!posts ? (
+          <GridPostList posts={[]} isLoading={true} />
+        ) : shouldShowSearchResults ? (
           <SearchResults
             isSearchFetching={isSearchFetching}
             searchedPosts={searchedPosts}
@@ -138,19 +107,8 @@ const Explore = () => {
       </div>
 
       {hasNextPage && !searchValue && (
-        <div ref={ref} className="mt-10 grid-container">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="relative min-w-80 h-80 animate-pulse">
-              <div className="h-full w-full bg-dark-4 rounded-[24px]"></div>
-              <div className="absolute bottom-0 left-0 right-0 p-5">
-                <div className="h-4 bg-dark-3 rounded w-3/4 mb-2"></div>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-dark-3 rounded-full"></div>
-                  <div className="h-3 bg-dark-3 rounded w-24"></div>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div ref={ref} className="mt-10">
+          <GridPostList posts={[]} isLoading={true} />
         </div>
       )}
     </div>

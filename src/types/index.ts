@@ -20,6 +20,7 @@ export type INewPost = {
   location?: string;
   tags?: string;
   circleId?: string;
+  mood?: string;
 };
 
 export type IUpdatePost = {

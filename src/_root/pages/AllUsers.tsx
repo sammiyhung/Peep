@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader, UserCard } from "@/components/shared";
+import { UserCard } from "@/components/shared";
 import VibeMatches from "@/components/shared/VibeMatches";
 import { useGetUsers } from "@/lib/react-query/queries";
 

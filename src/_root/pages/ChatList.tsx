@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserContext } from '@/context/AuthContext';
-import { Loader } from '@/components/shared';
 import { api } from '@/lib/api/config';
 import io, { Socket } from 'socket.io-client';
+import ChatListSkeleton from '@/components/shared/ChatListSkeleton';
 
 const SOCKET_SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:10000';
 
@@ -142,17 +142,17 @@ const ChatList = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-3 w-full">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="glass-card p-4 rounded-xl animate-pulse flex items-center gap-3">
-            <div className="w-12 h-12 bg-dark-4 rounded-full flex-shrink-0"></div>
-            <div className="flex-1 min-w-0">
-              <div className="h-4 bg-dark-4 rounded w-32 mb-2"></div>
-              <div className="h-3 bg-dark-4 rounded w-48"></div>
-            </div>
-            <div className="h-3 bg-dark-4 rounded w-12"></div>
+      <div className="common-container">
+        <div className="max-w-5xl w-full">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="h3-bold md:h2-bold">Messages</h2>
           </div>
-        ))}
+          <div className="flex flex-col gap-3 w-full">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <ChatListSkeleton key={i} />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { GridPostList, Loader } from "@/components/shared";
+import { GridPostList } from "@/components/shared";
 import { useGetCurrentUser } from "@/lib/react-query/queries";
 
 const Saved = () => {

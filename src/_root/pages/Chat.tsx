@@ -86,7 +86,6 @@ const Chat = () => {
   
   // Ref for last message and message end
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const lastMessageRef = useRef<HTMLButtonElement | null>(null);
   
   // Ref to track scroll position
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);

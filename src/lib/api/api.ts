@@ -98,6 +98,7 @@ export async function createPost(post: INewPost) {
     formData.append('caption', post.caption);
     formData.append('location', post.location || '');
     formData.append('tags', post.tags || '');
+    formData.append('mood', post.mood || 'neutral');
     
     // Add circleId if posting to a circle
     if (post.circleId) {

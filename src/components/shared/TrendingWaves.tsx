@@ -23,9 +23,9 @@ interface Wave {
 
 const TrendingWaves = () => {
   const [waves, setWaves] = useState<Wave[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedWave, setSelectedWave] = useState<Wave | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
     fetchTrendingWaves();
@@ -38,19 +38,30 @@ const TrendingWaves = () => {
     try {
       const response = await api.get('/api/trending/waves');
       setWaves(response.data.waves);
-      setIsLoading(false);
+      setHasLoaded(true);
     } catch (error: any) {
       console.error('Error fetching trending waves:', error);
       // If 404, the route doesn't exist yet - hide component
       if (error?.response?.status === 404) {
         console.log('Trending API not available yet. Please restart the server.');
       }
-      setIsLoading(false);
+      setHasLoaded(true);
     }
   };
 
-  if (isLoading) {
-    return null;
+  // Show loading skeleton only on first load
+  if (!hasLoaded) {
+    return (
+      <div className="glass-card p-2 sm:p-3 rounded-xl border border-dark-4/50">
+        <div className="animate-pulse flex items-center gap-2">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-dark-4 rounded-lg"></div>
+          <div className="flex-1">
+            <div className="h-3 bg-dark-4 rounded w-20 mb-1"></div>
+            <div className="h-2 bg-dark-4 rounded w-full"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (waves.length === 0) {

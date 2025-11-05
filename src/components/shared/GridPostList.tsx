@@ -1,20 +1,35 @@
 import { Link } from "react-router-dom";
 
 import { PostStats } from "@/components/shared";
+import GridPostSkeleton from "@/components/shared/GridPostSkeleton";
 import { useUserContext } from "@/context/AuthContext";
 
 type GridPostListProps = {
   posts: any[];
   showUser?: boolean;
   showStats?: boolean;
+  isLoading?: boolean;
 };
 
 const GridPostList = ({
   posts,
   showUser = true,
   showStats = true,
+  isLoading = false,
 }: GridPostListProps) => {
   const { user } = useUserContext();
+
+  if (isLoading) {
+    return (
+      <ul className="grid-container">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <li key={i}>
+            <GridPostSkeleton />
+          </li>
+        ))}
+      </ul>
+    );
+  }
 
   return (
     <ul className="grid-container">
