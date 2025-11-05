@@ -172,7 +172,7 @@
 
   /* Home */
   .home-container {
-    @apply flex flex-col flex-1 items-center gap-10 overflow-y-auto overflow-x-hidden py-10 px-5 md:px-8 lg:p-14 custom-scrollbar;
+    @apply flex flex-col flex-1 items-center gap-10 overflow-y-auto py-10 px-5 md:px-8 lg:p-14 custom-scrollbar;
     padding-bottom: 120px;
   }
 
@@ -248,6 +248,95 @@
     .saved-container {
       padding-bottom: 56px;
     }
+  }
+
+  /* Chat Improvements - Animations */
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+    background: linear-gradient(
+      to right,
+      #374151 0%,
+      #4b5563 20%,
+      #374151 40%,
+      #374151 100%
+    );
+    background-size: 1000px 100%;
+  }
+
+  @keyframes scale-in {
+    from {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.2s ease-out;
+  }
+
+  @keyframes slide-in-top {
+    from {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-in-top {
+    animation: slide-in-top 0.3s ease-out;
+  }
+
+  /* Chat Container - Above Bottombar */
+  .chat-page-container {
+    padding-bottom: 6.5rem !important;
+  }
+
+  @media (min-width: 768px) {
+    .chat-page-container {
+      padding-bottom: 0 !important;
+    }
+  }
+
+  /* Message Bubble Styles */
+  .message-bubble-rounded {
+    border-radius: 1rem;
+  }
+
+  .message-bubble-square {
+    border-radius: 0.25rem;
+  }
+
+  .message-bubble-pill {
+    border-radius: 9999px;
+  }
+
+  /* Font Sizes */
+  .text-size-small {
+    font-size: 0.875rem;
+  }
+
+  .text-size-medium {
+    font-size: 1rem;
+  }
+
+  .text-size-large {
+    font-size: 1.125rem;
   }
 
   /* Bottom bar - Glassmorphic Floating Overlay */

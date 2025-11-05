@@ -12,6 +12,10 @@ import {
   AllUsers,
   Chat,
   ChatList,
+  Circles,
+  CreateCircle,
+  CircleDetails,
+  CreateCirclePost,
 } from "@/_root/pages";
 import AuthLayout from "./_auth/AuthLayout";
 import RootLayout from "./_root/RootLayout";
@@ -39,6 +43,10 @@ const App = () => {
           <Route path="/chats" element={<ChatList />} />
           <Route path="/chat/:userId" element={<Chat />} />
           <Route path="/all-users" element={<AllUsers />} />
+          <Route path="/circles" element={<Circles />} />
+          <Route path="/circles/create" element={<CreateCircle />} />
+          <Route path="/circles/:id" element={<CircleDetails />} />
+          <Route path="/circles/:circleId/create-post" element={<CreateCirclePost />} />
           <Route path="/create-post" element={<CreatePost />} />
           <Route path="/update-post/:id" element={<EditPost />} />
           <Route path="/posts/:id" element={<PostDetails />} />

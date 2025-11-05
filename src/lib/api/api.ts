@@ -98,6 +98,11 @@ export async function createPost(post: INewPost) {
     formData.append('caption', post.caption);
     formData.append('location', post.location || '');
     formData.append('tags', post.tags || '');
+    
+    // Add circleId if posting to a circle
+    if (post.circleId) {
+      formData.append('circleId', post.circleId);
+    }
 
     const response = await api.post('/api/posts', formData, {
       headers: {
@@ -327,5 +332,185 @@ export async function updateUser(user: IUpdateUser) {
   } catch (error) {
     console.log(error);
     throw error;
+  }
+}
+
+// ============================================================
+// CIRCLES
+// ============================================================
+
+// ============================== CREATE CIRCLE
+export async function createCircle(circle: {
+  name: string;
+  topic: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  isPrivate?: boolean;
+  maxMembers?: number;
+  tags?: string[];
+  duration?: number;
+}) {
+  try {
+    const response = await api.post('/api/circles', circle);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error creating circle';
+  }
+}
+
+// ============================== GET ALL CIRCLES
+export async function getCircles(params?: {
+  search?: string;
+  topic?: string;
+  limit?: number;
+}) {
+  try {
+    const response = await api.get('/api/circles', { params });
+    return response.data.circles;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error fetching circles';
+  }
+}
+
+// ============================== GET MY CIRCLES
+export async function getMyCircles() {
+  try {
+    const response = await api.get('/api/circles/my-circles');
+    return response.data.circles;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error fetching your circles';
+  }
+}
+
+// ============================== GET CIRCLE BY ID
+export async function getCircleById(circleId: string) {
+  try {
+    const response = await api.get(`/api/circles/${circleId}`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error fetching circle';
+  }
+}
+
+// ============================== JOIN CIRCLE
+export async function joinCircle(circleId: string) {
+  try {
+    const response = await api.post(`/api/circles/${circleId}/join`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error joining circle';
+  }
+}
+
+// ============================== LEAVE CIRCLE
+export async function leaveCircle(circleId: string) {
+  try {
+    const response = await api.post(`/api/circles/${circleId}/leave`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error leaving circle';
+  }
+}
+
+// ============================== DELETE CIRCLE
+export async function deleteCircle(circleId: string) {
+  try {
+    const response = await api.delete(`/api/circles/${circleId}`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error deleting circle';
+  }
+}
+
+// ============================== GET CIRCLE POSTS
+export async function getCirclePosts(circleId: string) {
+  try {
+    const response = await api.get(`/api/circles/${circleId}/posts`);
+    return response.data.posts;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error fetching circle posts';
+  }
+}
+
+// ============================================================
+// REACTIONS
+// ============================================================
+
+// ============================== ADD REACTION
+export async function addReaction(postId: string, reactionType: string) {
+  try {
+    const response = await api.post(`/api/posts/${postId}/react`, { reactionType });
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error adding reaction';
+  }
+}
+
+// ============================== REMOVE REACTION
+export async function removeReaction(postId: string) {
+  try {
+    const response = await api.delete(`/api/posts/${postId}/react`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error removing reaction';
+  }
+}
+
+// ============================== GET POST REACTIONS
+export async function getPostReactions(postId: string) {
+  try {
+    const response = await api.get(`/api/posts/${postId}/reactions`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error fetching reactions';
+  }
+}
+
+// ============================================================
+// COMMENTS
+// ============================================================
+
+// ============================== CREATE COMMENT
+export async function createComment(postId: string, text: string) {
+  try {
+    const response = await api.post('/api/comments', { postId, text });
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error creating comment';
+  }
+}
+
+// ============================== GET COMMENTS
+export async function getComments(postId: string) {
+  try {
+    const response = await api.get(`/api/comments/${postId}`);
+    return response.data.comments;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error fetching comments';
+  }
+}
+
+// ============================== DELETE COMMENT
+export async function deleteComment(commentId: string) {
+  try {
+    const response = await api.delete(`/api/comments/${commentId}`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error deleting comment';
   }
 }

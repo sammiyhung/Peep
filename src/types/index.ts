@@ -19,6 +19,7 @@ export type INewPost = {
   file: File[];
   location?: string;
   tags?: string;
+  circleId?: string;
 };
 
 export type IUpdatePost = {

@@ -20,6 +20,11 @@ export const sidebarLinks = [
     label: "Chats",
   },
   {
+    imgURL: "/assets/icons/circle.svg",
+    route: "/circles",
+    label: "Circles",
+  },
+  {
     imgURL: "/assets/icons/gallery-add.svg",
     route: "/create-post",
     label: "Create Post",
@@ -38,9 +43,9 @@ export const bottombarLinks = [
     label: "Explore",
   },
   {
-    imgURL: "/assets/icons/gallery-add.svg",
-    route: "/create-post",
-    label: "Create",
+    imgURL: "/assets/icons/circle.svg",
+    route: "/circles",
+    label: "Circles",
   },
   {
     imgURL: "/assets/icons/chat.svg",

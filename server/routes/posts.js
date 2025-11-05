@@ -2,8 +2,11 @@ const express = require('express');
 const multer = require('multer');
 const Post = require('../models/Post');
 const Save = require('../models/Save');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
+const { spendEnergy, awardEnergy, regenerateEnergy, ENERGY_CONFIG } = require('../utils/energyManager');
+const { calculateTrendingScore } = require('../utils/trendingCalculator');
 
 const router = express.Router();
 
@@ -16,10 +19,50 @@ const upload = multer({ storage });
 // @access  Private
 router.post('/', auth, upload.single('file'), async (req, res) => {
   try {
-    const { caption, location, tags } = req.body;
+    const { caption, location, tags, mood = 'neutral', circleId } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ message: 'Image file is required' });
+    }
+
+    // Get user and check energy
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // If posting to a circle, verify membership
+    let circle = null;
+    if (circleId) {
+      const Circle = require('../models/Circle');
+      circle = await Circle.findById(circleId);
+      
+      if (!circle) {
+        return res.status(404).json({ message: 'Circle not found' });
+      }
+      
+      if (circle.isExpired || new Date() >= circle.expiresAt) {
+        return res.status(410).json({ message: 'This circle has expired' });
+      }
+      
+      if (!circle.isMember(req.userId)) {
+        return res.status(403).json({ message: 'You must be a member to post in this circle' });
+      }
+    }
+
+    // Regenerate energy first
+    const energyUpdate = regenerateEnergy(user);
+    user.energy = energyUpdate.energy;
+    user.energyLastUpdated = energyUpdate.energyLastUpdated;
+
+    // Check if user has enough energy
+    const energyCost = ENERGY_CONFIG.COSTS.CREATE_POST;
+    if (user.energy < energyCost) {
+      return res.status(400).json({ 
+        message: `Not enough energy. Need ${energyCost}, have ${user.energy}`,
+        energyNeeded: energyCost,
+        currentEnergy: user.energy,
+      });
     }
 
     // Upload to Cloudinary
@@ -36,14 +79,35 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
       imageId: result.public_id,
       location: location || '',
       tags: tagsArray,
+      mood: mood || user.currentMood || 'neutral',
+      circle: circleId || null,
     });
 
     await newPost.save();
 
+    // If posting to a circle, add post to circle
+    if (circle) {
+      circle.posts.push(newPost._id);
+      circle.stats.totalPosts += 1;
+      await circle.save();
+    }
+
+    // Spend energy
+    await spendEnergy(user, energyCost, 'CREATE_POST');
+    
+    // Update vibe score
+    user.vibeScore += 5;
+    
+    await user.save();
+
     // Populate creator info
     await newPost.populate('creator', '-password');
 
-    res.status(201).json(newPost);
+    res.status(201).json({
+      ...newPost.toObject(),
+      energySpent: energyCost,
+      remainingEnergy: user.energy,
+    });
   } catch (error) {
     console.error('Create post error:', error);
     res.status(500).json({ message: 'Server error creating post' });
@@ -55,11 +119,22 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
 // @access  Private
 router.get('/', auth, async (req, res) => {
   try {
-    const { cursor, limit = 9 } = req.query;
+    const { cursor, limit = 9, mood } = req.query;
+
+    // Get current user for mood-based filtering
+    const currentUser = await User.findById(req.userId);
 
     let query = {};
     if (cursor) {
       query._id = { $lt: cursor };
+    }
+
+    // Mood-based filtering
+    if (mood && mood !== 'all') {
+      query.mood = mood;
+    } else if (currentUser && currentUser.currentMood !== 'neutral') {
+      // If user has a mood set, prioritize similar moods
+      // But still show all posts (just reorder them)
     }
 
     const posts = await Post.find(query)
@@ -67,9 +142,16 @@ router.get('/', auth, async (req, res) => {
       .limit(parseInt(limit))
       .populate('creator', '-password');
 
+    // Calculate trending scores
+    const postsWithScores = posts.map(post => ({
+      ...post.toObject(),
+      trendingScore: calculateTrendingScore(post),
+    }));
+
     res.json({
-      documents: posts,
-      total: posts.length,
+      documents: postsWithScores,
+      total: postsWithScores.length,
+      userMood: currentUser?.currentMood,
     });
   } catch (error) {
     console.error('Get posts error:', error);
@@ -331,6 +413,132 @@ router.get('/user/:userId', auth, async (req, res) => {
   } catch (error) {
     console.error('Get user posts error:', error);
     res.status(500).json({ message: 'Server error fetching user posts' });
+  }
+});
+
+// ============================================================
+// REACTIONS
+// ============================================================
+
+// @route   POST /api/posts/:postId/react
+// @desc    Add or change reaction to a post
+// @access  Private
+router.post('/:postId/react', auth, async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { reactionType } = req.body;
+    const userId = req.userId;
+
+    // Validate reaction type
+    const validReactions = ['mindBlown', 'vibeCheck', 'realTalk', 'fire', 'heart'];
+    if (!validReactions.includes(reactionType)) {
+      return res.status(400).json({ message: 'Invalid reaction type' });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Remove user from all reaction arrays
+    validReactions.forEach(type => {
+      post.reactions[type] = post.reactions[type].filter(
+        id => id.toString() !== userId
+      );
+    });
+
+    // Add user to the new reaction type
+    if (!post.reactions[reactionType].includes(userId)) {
+      post.reactions[reactionType].push(userId);
+    }
+
+    // Recalculate trending score
+    post.trendingScore = calculateTrendingScore(post);
+
+    await post.save();
+
+    // Award energy to post creator (small amount for engagement)
+    if (post.creator.toString() !== userId) {
+      await awardEnergy(post.creator, 1, 'Reaction received');
+    }
+
+    res.json({ 
+      message: 'Reaction added successfully',
+      reactions: post.reactions 
+    });
+  } catch (error) {
+    console.error('Add reaction error:', error);
+    res.status(500).json({ message: 'Server error adding reaction' });
+  }
+});
+
+// @route   DELETE /api/posts/:postId/react
+// @desc    Remove reaction from a post
+// @access  Private
+router.delete('/:postId/react', auth, async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const userId = req.userId;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Remove user from all reaction arrays
+    const validReactions = ['mindBlown', 'vibeCheck', 'realTalk', 'fire', 'heart'];
+    validReactions.forEach(type => {
+      post.reactions[type] = post.reactions[type].filter(
+        id => id.toString() !== userId
+      );
+    });
+
+    // Recalculate trending score
+    post.trendingScore = calculateTrendingScore(post);
+
+    await post.save();
+
+    res.json({ 
+      message: 'Reaction removed successfully',
+      reactions: post.reactions 
+    });
+  } catch (error) {
+    console.error('Remove reaction error:', error);
+    res.status(500).json({ message: 'Server error removing reaction' });
+  }
+});
+
+// @route   GET /api/posts/:postId/reactions
+// @desc    Get all reactions for a post with user details
+// @access  Private
+router.get('/:postId/reactions', auth, async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    const post = await Post.findById(postId)
+      .populate('reactions.mindBlown', 'name username imageUrl')
+      .populate('reactions.vibeCheck', 'name username imageUrl')
+      .populate('reactions.realTalk', 'name username imageUrl')
+      .populate('reactions.fire', 'name username imageUrl')
+      .populate('reactions.heart', 'name username imageUrl');
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Add reaction type to each user object
+    const reactionsWithType = {};
+    Object.keys(post.reactions).forEach(type => {
+      reactionsWithType[type] = post.reactions[type].map(user => ({
+        ...user.toObject(),
+        reactionType: type
+      }));
+    });
+
+    res.json(reactionsWithType);
+  } catch (error) {
+    console.error('Get reactions error:', error);
+    res.status(500).json({ message: 'Server error fetching reactions' });
   }
 });
 

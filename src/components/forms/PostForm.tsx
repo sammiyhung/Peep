@@ -1,7 +1,9 @@
 import * as z from "zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Smile, Sparkles, Wind, Target, Palette, Brain, Zap, Waves, Minus } from 'lucide-react';
 
 import {
   Form,
@@ -25,10 +27,24 @@ type PostFormProps = {
   action: "Create" | "Update";
 };
 
+const MOODS = [
+  { value: 'happy', label: 'Happy', icon: Smile, iconColor: 'text-yellow-500' },
+  { value: 'inspired', label: 'Inspired', icon: Sparkles, iconColor: 'text-purple-500' },
+  { value: 'chill', label: 'Chill', icon: Wind, iconColor: 'text-blue-500' },
+  { value: 'focused', label: 'Focused', icon: Target, iconColor: 'text-green-500' },
+  { value: 'creative', label: 'Creative', icon: Palette, iconColor: 'text-pink-500' },
+  { value: 'thoughtful', label: 'Thoughtful', icon: Brain, iconColor: 'text-indigo-500' },
+  { value: 'energetic', label: 'Energetic', icon: Zap, iconColor: 'text-red-500' },
+  { value: 'relaxed', label: 'Relaxed', icon: Waves, iconColor: 'text-teal-500' },
+  { value: 'neutral', label: 'Neutral', icon: Minus, iconColor: 'text-gray-500' },
+];
+
 const PostForm = ({ post, action }: PostFormProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useUserContext();
+  const [selectedMood, setSelectedMood] = useState(post?.mood || 'neutral');
+  
   const form = useForm<z.infer<typeof PostValidation>>({
     resolver: zodResolver(PostValidation),
     defaultValues: {
@@ -68,6 +84,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
     const newPost = await createPost({
       ...value,
       userId: user.id,
+      mood: selectedMood,
     });
 
     if (!newPost) {
@@ -151,6 +168,39 @@ const PostForm = ({ post, action }: PostFormProps) => {
             </FormItem>
           )}
         />
+
+        {/* Mood Selector */}
+        <div>
+          <label className="shad-form_label mb-3 block">Select Your Mood</label>
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+            {MOODS.map((mood) => {
+              const MoodIcon = mood.icon;
+              return (
+                <button
+                  key={mood.value}
+                  type="button"
+                  onClick={() => setSelectedMood(mood.value)}
+                  className={`p-4 rounded-xl transition-all duration-300 hover:scale-105 border ${
+                    selectedMood === mood.value
+                      ? 'bg-primary-500/20 border-primary-500 shadow-lg'
+                      : 'bg-dark-4 border-dark-4 hover:bg-dark-3'
+                  }`}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <MoodIcon 
+                      size={28} 
+                      className={selectedMood === mood.value ? 'text-primary-500' : mood.iconColor} 
+                    />
+                    <span className="text-xs text-light-2 font-medium">{mood.label}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-light-3 mt-2">
+            Your mood helps others discover content that matches their vibe
+          </p>
+        </div>
 
         <div className="flex gap-4 items-center justify-end">
           <Button

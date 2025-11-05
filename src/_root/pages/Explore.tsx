@@ -3,7 +3,7 @@ import { useInView } from "react-intersection-observer";
 import { Input } from "@/components/ui";
 import { useNavigate } from 'react-router-dom';
 import useDebounce from "@/hooks/useDebounce";
-import { GridPostList, Loader } from "@/components/shared";
+import { GridPostList } from "@/components/shared";
 import { useGetPosts, useSearchPosts } from "@/lib/react-query/queries";
 
 export type SearchResultProps = {
@@ -13,7 +13,22 @@ export type SearchResultProps = {
 
 const SearchResults = ({ isSearchFetching, searchedPosts }: SearchResultProps) => {
   if (isSearchFetching) {
-    return <Loader />;
+    return (
+      <div className="grid-container">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="relative min-w-80 h-80 animate-pulse">
+            <div className="h-full w-full bg-dark-4 rounded-[24px]"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-5">
+              <div className="h-4 bg-dark-3 rounded w-3/4 mb-2"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-dark-3 rounded-full"></div>
+                <div className="h-3 bg-dark-3 rounded w-24"></div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   } else if (searchedPosts && searchedPosts.documents.length > 0) {
     return <GridPostList posts={searchedPosts.documents} />;
   } else {
@@ -40,8 +55,19 @@ const Explore = () => {
 
   if (!posts)
     return (
-      <div className="flex-center w-full h-full">
-        <Loader />
+      <div className="grid-container">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="relative min-w-80 h-80 animate-pulse">
+            <div className="h-full w-full bg-dark-4 rounded-[24px]"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-5">
+              <div className="h-4 bg-dark-3 rounded w-3/4 mb-2"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-dark-3 rounded-full"></div>
+                <div className="h-3 bg-dark-3 rounded w-24"></div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     );
 
@@ -112,8 +138,19 @@ const Explore = () => {
       </div>
 
       {hasNextPage && !searchValue && (
-        <div ref={ref} className="mt-10">
-          <Loader />
+        <div ref={ref} className="mt-10 grid-container">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="relative min-w-80 h-80 animate-pulse">
+              <div className="h-full w-full bg-dark-4 rounded-[24px]"></div>
+              <div className="absolute bottom-0 left-0 right-0 p-5">
+                <div className="h-4 bg-dark-3 rounded w-3/4 mb-2"></div>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-dark-3 rounded-full"></div>
+                  <div className="h-3 bg-dark-3 rounded w-24"></div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

@@ -10,9 +10,17 @@ const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
 const userRoutes = require('./routes/users');
 const messageRoutes = require('./routes/messages');
+const energyRoutes = require('./routes/energy');
+const vibeRoutes = require('./routes/vibe');
+const trendingRoutes = require('./routes/trending');
+const circleRoutes = require('./routes/circles');
+const commentRoutes = require('./routes/comments');
 
 // Import models
 const Message = require('./models/Message');
+
+// Import utilities
+const { startCircleCleanupJob } = require('./utils/circleCleanup');
 
 // Initialize Express app
 const app = express();
@@ -27,7 +35,11 @@ mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-  .then(() => console.log('MongoDB connected successfully'))
+  .then(() => {
+    console.log('MongoDB connected successfully');
+    // Start circle cleanup job after DB connection
+    startCircleCleanupJob();
+  })
   .catch((err) => console.error('MongoDB connection error:', err));
 
 // API Routes
@@ -35,6 +47,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/energy', energyRoutes);
+app.use('/api/vibe', vibeRoutes);
+app.use('/api/trending', trendingRoutes);
+app.use('/api/circles', circleRoutes);
+app.use('/api/comments', commentRoutes);
 
 // Health check route
 app.get('/', (req, res) => {
@@ -47,7 +64,7 @@ const server = http.createServer(app);
 // Initialize Socket.io with CORS settings
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'https://peeps.onrender.com',
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -55,7 +72,7 @@ const io = new Server(server, {
   allowEIO3: true,
 });
 
-console.log('Socket.io server initialized with CORS origin:', process.env.FRONTEND_URL || 'https://peeps.onrender.com');
+console.log('Socket.io server initialized with CORS origin:', process.env.FRONTEND_URL || 'http://localhost:5173');
 
 // In-memory user storage (Consider using Redis for scalability)
 const users = {};

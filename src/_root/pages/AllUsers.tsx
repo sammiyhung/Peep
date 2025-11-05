@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader, UserCard } from "@/components/shared";
+import VibeMatches from "@/components/shared/VibeMatches";
 import { useGetUsers } from "@/lib/react-query/queries";
 
 const AllUsers = () => {
@@ -29,6 +30,9 @@ const AllUsers = () => {
           <h2 className="h3-bold md:h2-bold text-left w-full">Find Peeps</h2>
         </div>
 
+        {/* Vibe Matches */}
+        <VibeMatches />
+
         {/* Search Bar */}
         <div className="my-4">
           <input
@@ -36,13 +40,27 @@ const AllUsers = () => {
             placeholder="Search by Username or Name"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)} // Update search query on change
-            className="w-full px-4 py-2 border rounded-lg text-black"
+            className="w-full px-4 py-3 rounded-lg text-light-1 placeholder:text-light-3 focus:outline-none glass-card transition-all duration-300"
+            style={{
+              border: '1px solid rgba(255, 255, 255, 0.08)'
+            }}
           />
         </div>
 
         {/* Show loader while fetching data */}
         {isLoading && !creators ? (
-          <Loader />
+          <ul className="user-grid">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <li key={i} className="animate-pulse">
+                <div className="user-card">
+                  <div className="w-14 h-14 bg-dark-4 rounded-full mx-auto mb-3"></div>
+                  <div className="h-4 bg-dark-4 rounded w-24 mx-auto mb-2"></div>
+                  <div className="h-3 bg-dark-4 rounded w-32 mx-auto mb-3"></div>
+                  <div className="h-9 bg-dark-4 rounded w-full"></div>
+                </div>
+              </li>
+            ))}
+          </ul>
         ) : (
           <ul className="user-grid">
             {/* Display filtered users */}

@@ -50,7 +50,9 @@ const Bottombar = () => {
         const isActive = pathname === link.route;
         // Only make Chat tab active in /chats or /chat/:id routes
         const isChatsRoute = link.label === 'Chats' && (pathname === '/chats' || pathname.startsWith('/chat/'));
-        const shouldShowActive = link.label === 'Chats' ? isChatsRoute : isActive;
+        // Make Circles tab active for all circle routes
+        const isCirclesRoute = link.label === 'Circles' && pathname.startsWith('/circles');
+        const shouldShowActive = link.label === 'Chats' ? isChatsRoute : link.label === 'Circles' ? isCirclesRoute : isActive;
 
         return (
           <Link

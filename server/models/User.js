@@ -40,6 +40,65 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Post',
   }],
+  // Peep Energy System
+  energy: {
+    type: Number,
+    default: 100,
+    min: 0,
+    max: 1000,
+  },
+  energyLastUpdated: {
+    type: Date,
+    default: Date.now,
+  },
+  // Mood-Based Feed
+  currentMood: {
+    type: String,
+    enum: ['happy', 'inspired', 'chill', 'focused', 'creative', 'thoughtful', 'energetic', 'relaxed', 'neutral'],
+    default: 'neutral',
+  },
+  moodHistory: [{
+    mood: String,
+    timestamp: {
+      type: Date,
+      default: Date.now,
+    },
+  }],
+  // Vibe Match Data
+  interests: [{
+    type: String,
+  }],
+  vibeScore: {
+    type: Number,
+    default: 0,
+  },
+  // Gamification
+  level: {
+    type: Number,
+    default: 1,
+  },
+  badges: [{
+    name: String,
+    icon: String,
+    earnedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  }],
+  streak: {
+    current: {
+      type: Number,
+      default: 0,
+    },
+    longest: {
+      type: Number,
+      default: 0,
+    },
+    lastActive: {
+      type: Date,
+      default: Date.now,
+    },
+  },
 }, {
   timestamps: true,
 });

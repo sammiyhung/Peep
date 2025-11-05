@@ -35,7 +35,14 @@ const Saved = () => {
       </div>
 
       {!currentUser ? (
-        <Loader />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="animate-pulse">
+              <div className="h-64 bg-dark-4 rounded-xl mb-2"></div>
+              <div className="h-4 bg-dark-4 rounded w-3/4"></div>
+            </div>
+          ))}
+        </div>
       ) : (
         <ul className="w-full flex justify-center max-w-5xl gap-9">
           {savePosts.length === 0 ? (

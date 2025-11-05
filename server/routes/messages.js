@@ -128,6 +128,44 @@ router.put('/mark-read/:userId', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/messages
+// @desc    Send a new message
+// @access  Private
+router.post('/', auth, async (req, res) => {
+  try {
+    const { senderId, receiverId, content, replyTo } = req.body;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ message: 'Message content is required' });
+    }
+
+    if (!receiverId) {
+      return res.status(400).json({ message: 'Receiver ID is required' });
+    }
+
+    // Create new message
+    const newMessage = new Message({
+      senderId: req.userId, // Use authenticated user ID
+      receiverId,
+      content: content.trim(),
+      timestamp: new Date(),
+      replyTo: replyTo || undefined,
+    });
+
+    const savedMessage = await newMessage.save();
+
+    // Populate sender and receiver details
+    const populatedMessage = await Message.findById(savedMessage._id)
+      .populate('senderId', 'name username imageUrl')
+      .populate('receiverId', 'name username imageUrl');
+
+    res.status(201).json(populatedMessage);
+  } catch (error) {
+    console.error('Send message error:', error);
+    res.status(500).json({ message: 'Server error sending message' });
+  }
+});
+
 // @route   GET /api/messages
 // @desc    Get messages between two users
 // @access  Private
@@ -230,6 +268,32 @@ router.put('/:id', auth, async (req, res) => {
   } catch (error) {
     console.error('Edit message error:', error);
     res.status(500).json({ message: 'Server error editing message' });
+  }
+});
+
+// @route   DELETE /api/messages/conversation/:userId
+// @desc    Clear all messages in a conversation with a specific user
+// @access  Private
+router.delete('/conversation/:userId', auth, async (req, res) => {
+  try {
+    const currentUserId = req.userId;
+    const otherUserId = req.params.userId;
+
+    // Delete all messages between current user and the other user
+    const result = await Message.deleteMany({
+      $or: [
+        { senderId: currentUserId, receiverId: otherUserId },
+        { senderId: otherUserId, receiverId: currentUserId },
+      ],
+    });
+
+    res.json({ 
+      message: 'Conversation cleared successfully', 
+      deletedCount: result.deletedCount 
+    });
+  } catch (error) {
+    console.error('Clear conversation error:', error);
+    res.status(500).json({ message: 'Server error clearing conversation' });
   }
 });
 

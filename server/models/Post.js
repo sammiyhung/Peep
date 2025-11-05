@@ -30,8 +30,60 @@ const postSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
+  // Enhanced Reactions
+  reactions: {
+    mindBlown: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    }],
+    vibeCheck: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    }],
+    realTalk: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    }],
+    fire: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    }],
+    heart: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    }],
+  },
+  // Mood Tag
+  mood: {
+    type: String,
+    enum: ['happy', 'inspired', 'chill', 'focused', 'creative', 'thoughtful', 'energetic', 'relaxed', 'neutral'],
+    default: 'neutral',
+  },
+  // Trending Score
+  trendingScore: {
+    type: Number,
+    default: 0,
+  },
+  // Energy Cost (for posting)
+  energyCost: {
+    type: Number,
+    default: 5,
+  },
+  // Circle reference (optional - for posts shared in circles)
+  circle: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Circle',
+    default: null,
+  },
+  // Comments count (virtual field will be populated from Comment model)
+  commentsCount: {
+    type: Number,
+    default: 0,
+  },
 }, {
   timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
 });
 
 // Index for search functionality
