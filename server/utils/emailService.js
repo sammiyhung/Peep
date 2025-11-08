@@ -3,21 +3,17 @@ const crypto = require('crypto');
 
 // Create transporter
 const createTransporter = () => {
-  if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error('Email configuration is missing. Please set EMAIL_HOST, EMAIL_USER, and EMAIL_PASS environment variables.');
+  if (!process.env.SENDGRID_API_KEY) {
+    throw new Error('SendGrid API key is missing. Please set SENDGRID_API_KEY environment variable.');
   }
 
   return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT || 465,
-    secure: process.env.EMAIL_SECURE === 'true',
+    host: 'smtp.sendgrid.net',
+    port: 587,
+    secure: false,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-      rejectUnauthorized: false,
-      ciphers: "SSLv3",
+      user: 'apikey',
+      pass: process.env.SENDGRID_API_KEY,
     },
   });
 };
@@ -233,15 +229,13 @@ const sendVerificationEmail = async (user, token) => {
   
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Verification email sent to:', user.email);
+    console.log('✅ Verification email sent via SendGrid to:', user.email);
     return true;
   } catch (error) {
     console.error('❌ Error sending verification email:', error.message);
-    console.error('Email config:', {
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      user: process.env.EMAIL_USER ? '***configured***' : 'NOT SET',
-      from: process.env.EMAIL_FROM
+    console.error('SendGrid config:', {
+      apiKey: process.env.SENDGRID_API_KEY ? '***configured***' : 'NOT SET',
+      from: process.env.EMAIL_FROM || 'NOT SET'
     });
     throw error;
   }
@@ -459,15 +453,13 @@ const sendPasswordResetEmail = async (user, token) => {
   
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Password reset email sent to:', user.email);
+    console.log('✅ Password reset email sent via SendGrid to:', user.email);
     return true;
   } catch (error) {
     console.error('❌ Error sending password reset email:', error.message);
-    console.error('Email config:', {
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      user: process.env.EMAIL_USER ? '***configured***' : 'NOT SET',
-      from: process.env.EMAIL_FROM
+    console.error('SendGrid config:', {
+      apiKey: process.env.SENDGRID_API_KEY ? '***configured***' : 'NOT SET',
+      from: process.env.EMAIL_FROM || 'NOT SET'
     });
     throw error;
   }
