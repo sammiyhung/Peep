@@ -189,6 +189,31 @@ router.get('/verify-email/:token', async (req, res) => {
     });
 
     if (!user) {
+      // Check if user is already verified (token was already used)
+      const alreadyVerifiedUser = await User.findOne({
+        isEmailVerified: true,
+      }).sort({ updatedAt: -1 }).limit(1);
+
+      // Check if token exists but is expired
+      const expiredUser = await User.findOne({
+        emailVerificationToken: token,
+      });
+
+      if (expiredUser) {
+        // Check if already verified
+        if (expiredUser.isEmailVerified) {
+          return res.json({ 
+            message: 'Email already verified! You can now login.',
+            success: true,
+            alreadyVerified: true
+          });
+        }
+        
+        return res.status(400).json({ 
+          message: 'Verification token has expired. Please request a new verification email.' 
+        });
+      }
+
       return res.status(400).json({ 
         message: 'Invalid or expired verification token' 
       });

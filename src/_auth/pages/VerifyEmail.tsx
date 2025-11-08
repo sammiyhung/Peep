@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader } from '@/components/shared';
 import { CheckCircle2, XCircle, Mail } from 'lucide-react';
@@ -9,9 +9,16 @@ const VerifyEmail = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
+  const hasVerified = useRef(false);
 
   useEffect(() => {
     const verifyEmail = async () => {
+      // Prevent multiple verification attempts
+      if (hasVerified.current) {
+        return;
+      }
+      hasVerified.current = true;
+
       const token = searchParams.get('token');
 
       if (!token) {
@@ -82,7 +89,7 @@ const VerifyEmail = () => {
               </p>
               <button
                 onClick={() => navigate('/sign-in')}
-                className="shad-button_primary mt-4"
+                className="shad-button_primary mt-4 p-10"
               >
                 Go to Login Now
               </button>

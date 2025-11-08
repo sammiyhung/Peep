@@ -183,7 +183,195 @@
   }
 
   .home-posts {
-    @apply max-w-screen-sm flex flex-col items-center w-full gap-6 md:gap-9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 1.5rem;
+    max-width: min(640px, 100%);
+  }
+
+  @media (min-width: 768px) {
+    .home-posts {
+      gap: 2.25rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .home-posts {
+      gap: 0.75rem;
+      padding: 0 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .home-container {
+      gap: 1rem;
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+
+    /* Scale down all text elements */
+    .home-posts .h3-bold,
+    .home-posts .h2-bold {
+      font-size: 1.25rem !important;
+      line-height: 1.5rem !important;
+    }
+
+    .home-posts .base-semibold,
+    .home-posts .base-medium,
+    .home-posts .body-medium {
+      font-size: 0.813rem !important;
+    }
+
+    .home-posts .small-regular,
+    .home-posts .small-medium {
+      font-size: 0.688rem !important;
+    }
+
+    .home-posts .text-xs {
+      font-size: 0.625rem !important;
+    }
+
+    /* Scale down cards and containers */
+    .home-posts .glass-card {
+      padding: 0.75rem !important;
+      border-radius: 0.75rem !important;
+    }
+
+    /* Scale down buttons */
+    .home-posts button {
+      font-size: 0.813rem !important;
+      padding: 0.5rem 0.75rem !important;
+    }
+
+    .home-posts .shad-button_primary {
+      padding: 0.5rem 1rem !important;
+    }
+
+    /* Scale down icons */
+    .home-posts svg {
+      width: 1rem !important;
+      height: 1rem !important;
+    }
+
+    /* Scale down avatar/profile images */
+    .home-posts .w-12 {
+      width: 2.5rem !important;
+      height: 2.5rem !important;
+    }
+
+    /* Scale down grid items */
+    .home-posts .grid {
+      gap: 0.5rem !important;
+    }
+
+    /* Scale down stats cards */
+    .home-posts .grid-cols-4 > div {
+      padding: 0.5rem !important;
+    }
+
+    .home-posts .grid-cols-2 {
+      gap: 0.5rem !important;
+    }
+  }
+
+  /* Extra small screens - optimize for 360px */
+  @media (max-width: 360px) {
+    .home-posts {
+      gap: 0.5rem;
+      padding: 0 0.25rem;
+      font-size: 0.75rem;
+    }
+
+    .home-container {
+      gap: 0.75rem;
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
+      padding-left: 0.25rem;
+      padding-right: 0.25rem;
+    }
+
+    /* Further reduce text sizes */
+    .home-posts .h3-bold,
+    .home-posts .h2-bold {
+      font-size: 1rem !important;
+      line-height: 1.25rem !important;
+    }
+
+    .home-posts .base-semibold,
+    .home-posts .base-medium,
+    .home-posts .body-medium {
+      font-size: 0.75rem !important;
+    }
+
+    .home-posts .small-regular,
+    .home-posts .small-medium {
+      font-size: 0.625rem !important;
+    }
+
+    .home-posts .text-xs {
+      font-size: 0.563rem !important;
+    }
+
+    /* Compact cards */
+    .home-posts .glass-card {
+      padding: 0.5rem !important;
+      border-radius: 0.5rem !important;
+    }
+
+    /* Compact buttons */
+    .home-posts button {
+      font-size: 0.75rem !important;
+      padding: 0.375rem 0.5rem !important;
+      white-space: nowrap;
+    }
+
+    .home-posts .shad-button_primary {
+      padding: 0.375rem 0.75rem !important;
+    }
+
+    /* Smaller icons */
+    .home-posts svg {
+      width: 0.875rem !important;
+      height: 0.875rem !important;
+    }
+
+    /* Smaller avatars */
+    .home-posts .w-12 {
+      width: 2rem !important;
+      height: 2rem !important;
+    }
+
+    /* Tighter grids */
+    .home-posts .grid {
+      gap: 0.25rem !important;
+    }
+
+    .home-posts .grid-cols-4 > div {
+      padding: 0.375rem !important;
+    }
+
+    .home-posts .grid-cols-2 {
+      gap: 0.375rem !important;
+    }
+
+    /* Ensure filter buttons wrap properly */
+    .home-posts .flex.gap-2 {
+      gap: 0.375rem !important;
+    }
+
+    /* Compact mood selector */
+    .home-posts .flex.items-center.gap-3 {
+      gap: 0.5rem !important;
+    }
+
+    /* Prevent text overflow */
+    .home-posts * {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
   }
 
   .home-creators {
