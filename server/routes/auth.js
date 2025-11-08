@@ -53,8 +53,10 @@ router.post('/signup', async (req, res) => {
 
     await newUser.save();
 
-    // Send verification email
-    await sendVerificationEmail(newUser, verificationToken);
+    // Send verification email asynchronously (don't block response)
+    sendVerificationEmail(newUser, verificationToken).catch(err => {
+      console.error('Failed to send verification email:', err);
+    });
 
     // Return response without token (user needs to verify email first)
     res.status(201).json({

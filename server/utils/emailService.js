@@ -255,8 +255,13 @@ const sendVerificationEmail = async (user, token) => {
     return true;
   } catch (error) {
     console.error('❌ Error sending verification email:', error);
-    // Return true anyway in development to not block signup
-    return !process.env.EMAIL_HOST || true;
+    console.error('Email config:', {
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT,
+      user: process.env.EMAIL_USER ? '***configured***' : 'NOT SET',
+      from: process.env.EMAIL_FROM
+    });
+    throw error; // Throw error instead of silently returning true
   }
 };
 
@@ -488,8 +493,13 @@ const sendPasswordResetEmail = async (user, token) => {
     return true;
   } catch (error) {
     console.error('❌ Error sending password reset email:', error);
-    // Return true anyway in development to not block the flow
-    return !process.env.EMAIL_HOST || true;
+    console.error('Email config:', {
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT,
+      user: process.env.EMAIL_USER ? '***configured***' : 'NOT SET',
+      from: process.env.EMAIL_FROM
+    });
+    throw error; // Throw error instead of silently returning true
   }
 };
 
