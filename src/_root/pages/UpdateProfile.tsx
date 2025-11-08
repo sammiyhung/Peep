@@ -149,8 +149,8 @@ const UpdateProfile = () => {
       const updatedUser = await updateUser({
         userId: currentUser._id,
         name: value.name,
-        bio: value.bio,
-        file: value.file,
+        bio: value.bio ?? "",
+        file: value.file ?? [],
         imageUrl: currentUser.imageUrl,
         imageId: currentUser.imageId,
         username: value.username,
