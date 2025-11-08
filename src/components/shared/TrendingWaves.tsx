@@ -65,7 +65,19 @@ const TrendingWaves = () => {
   }
 
   if (waves.length === 0) {
-    return null;
+    return (
+      <div className="glass-card p-2 sm:p-3 rounded-xl border border-dark-4/50">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex-center shadow-lg flex-shrink-0">
+            <TrendingUp size={16} className="text-white sm:w-[18px] sm:h-[18px]" />
+          </div>
+          <div className="text-left flex-1 min-w-0">
+            <p className="text-[10px] sm:text-sm font-bold text-light-1 whitespace-nowrap">Trending</p>
+            <p className="text-[10px] sm:text-xs text-light-3 whitespace-nowrap">No trending posts yet</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

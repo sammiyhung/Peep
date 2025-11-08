@@ -1,9 +1,61 @@
 const express = require('express');
 const User = require('../models/User');
+const Post = require('../models/Post');
 const auth = require('../middleware/auth');
 const { calculateVibeMatch, findTopVibeMatches, getVibeMatchLabel } = require('../utils/vibeMatch');
 
 const router = express.Router();
+
+// @route   GET /api/vibe/stats
+// @desc    Get vibe statistics for the platform
+// @access  Private
+router.get('/stats', auth, async (req, res) => {
+  try {
+    // Get mood distribution from recent posts
+    const recentPosts = await Post.find()
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .select('mood');
+    
+    // Count moods
+    const moodCounts = {
+      happy: 0,
+      inspired: 0,
+      chill: 0,
+      focused: 0,
+      creative: 0,
+      thoughtful: 0,
+      energetic: 0,
+      relaxed: 0,
+      neutral: 0,
+    };
+    
+    recentPosts.forEach(post => {
+      const mood = post.mood || 'neutral';
+      if (moodCounts.hasOwnProperty(mood)) {
+        moodCounts[mood]++;
+      }
+    });
+    
+    // Get total users
+    const totalUsers = await User.countDocuments();
+    
+    // Get active users (posted in last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const activePosts = await Post.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+    
+    res.json({
+      moodDistribution: moodCounts,
+      totalUsers,
+      activeUsers: activePosts,
+      totalPosts: recentPosts.length,
+    });
+  } catch (error) {
+    console.error('Get vibe stats error:', error);
+    res.status(500).json({ message: 'Server error fetching vibe stats' });
+  }
+});
 
 // @route   GET /api/vibe/matches
 // @desc    Get top vibe matches for current user

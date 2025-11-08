@@ -14,3 +14,5 @@ export { default as Circles } from "./Circles";
 export { default as CreateCircle } from "./CreateCircle";
 export { default as CircleDetails } from "./CircleDetails";
 export { default as CreateCirclePost } from "./CreateCirclePost";
+export { default as Followers } from "./Followers";
+export { default as Following } from "./Following";

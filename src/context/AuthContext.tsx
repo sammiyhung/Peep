@@ -1,5 +1,5 @@
-import { useNavigate } from "react-router-dom";
-import { createContext, useContext, useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 
 import { IUser } from "@/types";
 import { getCurrentUser } from "@/lib/api/api";
@@ -35,11 +35,17 @@ const AuthContext = createContext<IContextType>(INITIAL_STATE);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState<IUser>(INITIAL_USER);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const isCheckingAuth = useRef(false);
+  const hasInitialized = useRef(false);
 
   const checkAuthUser = async () => {
+    if (isCheckingAuth.current) return false;
+    
+    isCheckingAuth.current = true;
     setIsLoading(true);
     try {
       const currentAccount = await getCurrentUser();
@@ -63,17 +69,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return false;
     } finally {
       setIsLoading(false);
+      isCheckingAuth.current = false;
     }
   };
 
   useEffect(() => {
+    // Public routes that don't require authentication
+    const publicRoutes = [
+      '/sign-in',
+      '/sign-up',
+      '/forgot-password',
+      '/reset-password',
+      '/verify-email',
+      '/verify-email-prompt'
+    ];
+
+    // Check if current path is a public route
+    const isPublicRoute = publicRoutes.some(route => location.pathname.startsWith(route));
+
     const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/sign-in");
-    } else {
-      checkAuthUser();
+    
+    // Initial check only
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      
+      if (!token && !isPublicRoute) {
+        navigate("/sign-in", { replace: true });
+      } else if (token) {
+        checkAuthUser();
+      }
+      return;
     }
-  }, []);
+    
+    // Subsequent checks - only redirect if needed
+    if (!token && !isPublicRoute && location.pathname !== '/sign-in') {
+      navigate("/sign-in", { replace: true });
+    }
+  }, [location.pathname]);
 
   const value = {
     user,

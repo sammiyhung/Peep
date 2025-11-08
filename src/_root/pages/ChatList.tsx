@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { MoreVertical, Trash2 } from 'lucide-react';
 import { useUserContext } from '@/context/AuthContext';
 import { api } from '@/lib/api/config';
 import io, { Socket } from 'socket.io-client';
@@ -31,6 +32,7 @@ const ChatList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const [filterType, setFilterType] = useState<'all' | 'unread' | 'read'>('all');
+  const [showMenu, setShowMenu] = useState(false);
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
@@ -121,21 +123,14 @@ const ChatList = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const handleDeleteConversation = async (conversationId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!confirm('Are you sure you want to delete this conversation?')) return;
+  const handleClearAllChats = async () => {
+    if (!confirm('Are you sure you want to clear all conversations? This action cannot be undone.')) return;
     
     try {
-      // Remove from local state immediately for better UX
-      setConversations(prev => prev.filter(conv => conv._id !== conversationId));
-      
-      // TODO: Add API call to delete conversation from backend
-      // await api.delete(`/api/messages/conversation/${conversationId}`);
+      setConversations([]);
+      await api.delete('/api/messages/conversations/all');
     } catch (error) {
-      console.error('Error deleting conversation:', error);
-      // Refresh conversations on error
+      console.error('Error clearing conversations:', error);
       fetchConversations();
     }
   };
@@ -179,38 +174,71 @@ const ChatList = () => {
           />
         </div>
 
-        {/* Filter Buttons */}
-        <div className="flex gap-2 mb-4">
-          <button
-            onClick={() => setFilterType('all')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-              filterType === 'all'
-                ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg'
-                : 'glass-card text-light-2 hover:text-light-1'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilterType('unread')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-              filterType === 'unread'
-                ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg'
-                : 'glass-card text-light-2 hover:text-light-1'
-            }`}
-          >
-            Unread
-          </button>
-          <button
-            onClick={() => setFilterType('read')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-              filterType === 'read'
-                ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg'
-                : 'glass-card text-light-2 hover:text-light-1'
-            }`}
-          >
-            Read
-          </button>
+        {/* Filter Buttons and Menu */}
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setFilterType('all')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                filterType === 'all'
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg'
+                  : 'glass-card text-light-2 hover:text-light-1'
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setFilterType('unread')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                filterType === 'unread'
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg'
+                  : 'glass-card text-light-2 hover:text-light-1'
+              }`}
+            >
+              Unread
+            </button>
+            <button
+              onClick={() => setFilterType('read')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                filterType === 'read'
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg'
+                  : 'glass-card text-light-2 hover:text-light-1'
+              }`}
+            >
+              Read
+            </button>
+          </div>
+          
+          {/* CRUD Menu */}
+          <div className="relative">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-2 rounded-lg glass-card hover:bg-dark-4 transition-all"
+            >
+              <MoreVertical size={20} />
+            </button>
+            
+            {showMenu && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setShowMenu(false)}
+                />
+                <div className="absolute right-0 top-full mt-2 w-48 glass-card rounded-lg shadow-lg z-50 overflow-hidden">
+                  <button
+                    onClick={() => {
+                      handleClearAllChats();
+                      setShowMenu(false);
+                    }}
+                    className="w-full px-4 py-3 text-left text-sm hover:bg-dark-4 transition-all flex items-center gap-2 text-red-500"
+                  >
+                    <Trash2 size={16} />
+                    Clear All Chats
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Conversations List */}
@@ -239,66 +267,54 @@ const ChatList = () => {
               if (!otherUser) return null;
 
               return (
-                <div key={conversation._id} className="relative group">
-                  <Link
-                    to={`/chat/${otherUser._id}`}
-                    className="flex items-center gap-4 p-4 rounded-xl transition-all duration-300 glass-card glass-hover animate-fade-in"
-                  >
-                    {/* User Avatar */}
-                    <img
-                      src={otherUser.imageUrl || '/assets/icons/profile-placeholder.svg'}
-                      alt={otherUser.name}
-                      className="w-14 h-14 rounded-full object-cover"
-                    />
+                <Link
+                  key={conversation._id}
+                  to={`/chat/${otherUser._id}`}
+                  className="flex items-center gap-4 p-4 rounded-xl transition-all duration-300 glass-card glass-hover animate-fade-in"
+                >
+                  {/* User Avatar */}
+                  <img
+                    src={otherUser.imageUrl || '/assets/icons/profile-placeholder.svg'}
+                    alt={otherUser.name}
+                    className="w-14 h-14 rounded-full object-cover"
+                  />
 
-                    {/* Message Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                      <h3 className="base-medium text-light-1 truncate">
-                        {otherUser.name}
-                      </h3>
-                      {conversation.lastMessage && (
-                        <span className="small-regular text-light-3">
-                          {formatTime(conversation.lastMessage.timestamp)}
+                  {/* Message Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                    <h3 className="base-medium text-light-1 truncate">
+                      {otherUser.name}
+                    </h3>
+                    {conversation.lastMessage && (
+                      <span className="small-regular text-light-3">
+                        {formatTime(conversation.lastMessage.timestamp)}
+                      </span>
+                    )}
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="small-regular text-light-3 truncate flex-1">
+                      {typingUsers.has(otherUser._id) ? (
+                        <span className="text-primary-500 italic">typing...</span>
+                      ) : conversation.lastMessage ? (
+                        <>
+                          {conversation.lastMessage.senderId === user.id && 'You: '}
+                          {conversation.lastMessage.content}
+                        </>
+                      ) : (
+                        'Start a conversation'
+                      )}
+                      </p>
+                      {(conversation.unreadCount ?? 0) > 0 && (
+                        <span className="flex-center min-w-[24px] h-6 px-2 rounded-full text-xs font-bold text-white animate-pulse" style={{
+                          background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                          boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)'
+                        }}>
+                          {(conversation.unreadCount ?? 0) > 99 ? '99+' : conversation.unreadCount}
                         </span>
                       )}
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="small-regular text-light-3 truncate flex-1">
-                        {typingUsers.has(otherUser._id) ? (
-                          <span className="text-primary-500 italic">typing...</span>
-                        ) : conversation.lastMessage ? (
-                          <>
-                            {conversation.lastMessage.senderId === user.id && 'You: '}
-                            {conversation.lastMessage.content}
-                          </>
-                        ) : (
-                          'Start a conversation'
-                        )}
-                        </p>
-                        {(conversation.unreadCount ?? 0) > 0 && (
-                          <span className="flex-center min-w-[24px] h-6 px-2 rounded-full text-xs font-bold text-white animate-pulse" style={{
-                            background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                            boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)'
-                          }}>
-                            {(conversation.unreadCount ?? 0) > 99 ? '99+' : conversation.unreadCount}
-                          </span>
-                        )}
-                      </div>
                     </div>
-                  </Link>
-                  
-                  {/* Delete Button */}
-                  <button
-                    onClick={(e) => handleDeleteConversation(conversation._id, e)}
-                    className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-2 rounded-full hover:bg-red-500/20"
-                    title="Delete conversation"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
+                  </div>
+                </Link>
               );
             })}
           </div>

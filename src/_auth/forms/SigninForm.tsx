@@ -30,30 +30,58 @@ const SigninForm = () => {
   });
 
   const handleSignin = async (user: z.infer<typeof SigninValidation>) => {
-    const session = await signInAccount(user);
+    try {
+      const newUser = await signInAccount(user);
 
-    if (!session) {
-      toast({ title: "Login failed. Please try again." });
+      if (!newUser) {
+        toast({ title: "Login failed. Please try again.", });
+        
+        return;
+      }
+
+      const isLoggedIn = await checkAuthUser();
+
+      if (isLoggedIn) {
+        form.reset();
+        toast({
+          title: "Logged in successfully!",
+          description: "Welcome back to Peep.",
+          variant: "success" as any
+        });
+        navigate("/");
+      } else {
+        toast({ title: "Login failed. Please try again.", });
+        
+        return;
+      }
+    } catch (error: any) {
+      console.log({ error });
       
-      return;
-    }
-
-    const isLoggedIn = await checkAuthUser();
-
-    if (isLoggedIn) {
-      form.reset();
-
-      navigate("/");
-    } else {
-      toast({ title: "Login failed. Please try again.", });
-      
-      return;
+      // Check if error is due to unverified email
+      if (error.response?.status === 403 && error.response?.data?.emailVerificationRequired) {
+        toast({
+          title: "Email verification required",
+          description: "Please verify your email before logging in.",
+          variant: "destructive",
+        });
+        
+        // Redirect to verification prompt page
+        navigate('/verify-email-prompt', { 
+          state: { email: error.response.data.email }
+        });
+      } else {
+        toast({ 
+          title: "Login failed", 
+          description: error.response?.data?.message || "Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
   return (
     <Form {...form}>
-      <div className="sm:w-420 flex-center flex-col">
+      <div className="w-full flex-center flex-col">
         <img src="/assets/images/logo.png" alt="logo" />
 
         <h2 className="h3-bold md:h2-bold pt-5 sm:pt-12">
@@ -102,6 +130,13 @@ const SigninForm = () => {
               "Log in"
             )}
           </Button>
+
+          <Link 
+            to="/forgot-password" 
+            className="text-primary-500 text-small-semibold text-center hover:underline"
+          >
+            Forgot password?
+          </Link>
 
           <p className="text-small-regular text-light-2 text-center mt-2">
             Don&apos;t have an account?

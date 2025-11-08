@@ -58,16 +58,18 @@ const Bottombar = () => {
           <Link
             key={`bottombar-${link.label}`}
             to={link.route}
-            className={`flex-center flex-col gap-1 p-3 transition-all duration-300 relative group ${
+            className={`flex-center flex-col gap-1 p-3 transition-all duration-300 relative group rounded-xl ${
               shouldShowActive ? "scale-110" : ""
             }`}
             style={{
               background: shouldShowActive 
-                ? 'linear-gradient(135deg, #FF377A, #FF1F6B)'
+                ? 'rgba(255, 55, 122, 0.25)'
                 : 'transparent',
-              borderRadius: shouldShowActive ? '10px' : '25px',
+              backdropFilter: shouldShowActive ? 'blur(20px)' : 'none',
+              WebkitBackdropFilter: shouldShowActive ? 'blur(20px)' : 'none',
+              border: shouldShowActive ? '1px solid rgba(255, 55, 122, 0.5)' : 'none',
               boxShadow: shouldShowActive 
-                ? '0 8px 32px rgba(255, 55, 122, 0.3)' 
+                ? '0 4px 20px rgba(255, 55, 122, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15)' 
                 : 'none',
             }}>
             <div className={`relative transition-transform duration-300 ${shouldShowActive ? 'scale-110' : 'group-hover:scale-105'}`}>
@@ -76,12 +78,7 @@ const Bottombar = () => {
                 alt={link.label}
                 width={24}
                 height={24}
-                className={`transition-all duration-300 ${shouldShowActive && "invert-white brightness-125"}`}
-                style={{
-                  filter: shouldShowActive 
-                    ? 'drop-shadow(0 0 8px rgba(255, 55, 122, 0.6))' 
-                    : 'none'
-                }}
+                className={`transition-all duration-300 ${shouldShowActive && "invert-white"}`}
               />
               {link.label === 'Chats' && unreadCount > 0 && (
                 <span className="absolute -top-2 -right-2 flex-center min-w-[18px] h-[18px] px-1 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-[10px] font-bold text-white shadow-lg animate-pulse">

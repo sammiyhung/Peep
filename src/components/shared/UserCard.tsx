@@ -1,13 +1,84 @@
-import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
+import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { UserPlus, UserMinus, MessageCircle } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { Button } from '../ui/button'; // Assuming you have a Button component
+import { Button } from '../ui/button';
+import { followUser } from '@/lib/api/api';
+import { useUserContext } from '@/context/AuthContext';
+import { useToast } from '../ui/use-toast';
+import { QUERY_KEYS } from '@/lib/react-query/queryKeys';
 
 type UserCardProps = {
   user: any;
+  onFollowChange?: () => void;
+  isFollowingContext?: boolean; // True if this card is in the Following tab
 };
 
-const UserCard = ({ user }: UserCardProps) => {
-  const navigate = useNavigate(); // Initialize useNavigate for programmatic navigation
+const UserCard = ({ user, onFollowChange, isFollowingContext = false }: UserCardProps) => {
+  const navigate = useNavigate();
+  const { user: currentUser } = useUserContext();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // If in Following context, we know we're following this user
+    if (isFollowingContext) {
+      setIsFollowing(true);
+    } else {
+      // Check if current user is following this user
+      setIsFollowing(user.followers?.includes(currentUser.id) || false);
+    }
+  }, [user.followers, currentUser.id, isFollowingContext]);
+
+  const handleFollow = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    try {
+      setIsLoading(true);
+      const response = await followUser(user._id);
+      setIsFollowing(response.isFollowing);
+      
+      // Update the user object to reflect the change
+      if (response.isFollowing) {
+        if (!user.followers) user.followers = [];
+        if (!user.followers.includes(currentUser.id)) {
+          user.followers.push(currentUser.id);
+        }
+      } else {
+        if (user.followers) {
+          user.followers = user.followers.filter((id: string) => id !== currentUser.id);
+        }
+      }
+      
+      toast({
+        title: response.message,
+      });
+      
+      // Invalidate queries to refetch data everywhere
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USERS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USER_BY_ID] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_CURRENT_USER] });
+      
+      // Trigger refetch if callback provided
+      if (onFollowChange) {
+        onFollowChange();
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to follow user",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const isOwnProfile = currentUser.id === user._id;
 
   return (
     <div className="user-card flex flex-col items-center justify-center p-4 border rounded-lg shadow-md">
@@ -24,15 +95,44 @@ const UserCard = ({ user }: UserCardProps) => {
         </div>
       </Link>
 
-      {/* Chat Button */}
-      <Button
-        type="button"
-        size="sm"
-        className="shad-button_primary px-5 mt-3"
-        onClick={() => navigate(`/chat/${user._id}`)} // Use navigate to programmatically navigate
-      >
-        Chat
-      </Button>
+      {/* Action Buttons */}
+      {!isOwnProfile && (
+        <div className="flex gap-2 mt-3 w-full">
+          <Button
+            type="button"
+            size="sm"
+            className="shad-button_primary px-3 flex-1 flex items-center justify-center gap-1"
+            onClick={() => navigate(`/chat/${user._id}`)}
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span className="hidden sm:inline">Chat</span>
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className={`px-3 flex-1 flex items-center justify-center gap-1 ${
+              isFollowing 
+                ? 'bg-dark-3 border-dark-3 hover:bg-dark-4 hover:text-white' 
+                : 'bg-primary-500 border-primary-500 hover:bg-primary-600 text-white'
+            }`}
+            onClick={handleFollow}
+            disabled={isLoading}
+          >
+            {isFollowing ? (
+              <>
+                <UserMinus className="w-4 h-4" />
+                <span className="hidden sm:inline">Unfollow</span>
+              </>
+            ) : (
+              <>
+                <UserPlus className="w-4 h-4" />
+                <span className="hidden sm:inline">Follow</span>
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

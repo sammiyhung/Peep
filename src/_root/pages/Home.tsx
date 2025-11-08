@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { PostCard, UserCard, VibeMatchScore } from "@/components/shared";
+import { PostCard, VibeMatchScore } from "@/components/shared";
 import EnergyBar from "@/components/shared/EnergyBar";
 import MoodSelector from "@/components/shared/MoodSelector";
 import TrendingWaves from "@/components/shared/TrendingWaves";
-import { useGetRecentPosts, useGetUsers } from "@/lib/react-query/queries";
+import { useGetRecentPosts } from "@/lib/react-query/queries";
 import { Sparkles, TrendingUp, Users, Zap } from 'lucide-react';
 import { api } from '@/lib/api/config';
 
@@ -20,11 +20,6 @@ const Home = () => {
     isLoading: isPostLoading,
     isError: isErrorPosts,
   } = useGetRecentPosts();
-  const {
-    data: creators,
-    isLoading: isUserLoading,
-    isError: isErrorCreators,
-  } = useGetUsers(10);
 
   // Fetch vibe stats
   useEffect(() => {
@@ -68,13 +63,10 @@ const Home = () => {
     }
   };
 
-  if (isErrorPosts || isErrorCreators) {
+  if (isErrorPosts) {
     return (
       <div className="flex flex-1">
         <div className="home-container">
-          <p className="body-medium text-light-1">Something bad happened</p>
-        </div>
-        <div className="home-creators">
           <p className="body-medium text-light-1">Something bad happened</p>
         </div>
       </div>
@@ -242,33 +234,6 @@ const Home = () => {
             </ul>
           )}
         </div>
-      </div>
-
-      <div className="home-creators">
-        <h3 className="h3-bold text-light-1">Top Creators</h3>
-        {isUserLoading && !creators ? (
-          <div className="grid 2xl:grid-cols-2 gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="glass-card p-4 rounded-xl animate-pulse">
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-dark-4 rounded-full"></div>
-                  <div className="flex-1">
-                    <div className="h-4 bg-dark-4 rounded w-24 mb-2"></div>
-                    <div className="h-3 bg-dark-4 rounded w-32"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <ul className="grid 2xl:grid-cols-2 gap-6">
-            {creators?.documents.map((creator: any) => (
-              <li key={creator?._id}>
-                <UserCard user={creator} />
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     </div>
   );

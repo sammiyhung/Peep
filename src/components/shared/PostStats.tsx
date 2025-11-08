@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Flame, Zap, ThumbsUp, Sparkles, Heart, MessageCircle } from "lucide-react";
 
-import { checkIsLiked } from "@/lib/utils";
 import {
-  useLikePost,
   useSavePost,
   useDeleteSavedPost,
   useGetCurrentUser,
@@ -27,9 +25,7 @@ type PostReactions = {
 
 const PostStats = ({ post, userId }: PostStatsProps) => {
   const location = useLocation();
-  const likesList = post.likes.map((user: any) => user._id || user);
 
-  const [likes, setLikes] = useState<string[]>(likesList);
   const [isSaved, setIsSaved] = useState(false);
   const [reactions, setReactions] = useState<PostReactions>(post.reactions || {
     mindBlown: [],
@@ -41,7 +37,6 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
   const [currentReaction, setCurrentReaction] = useState<ReactionType | null>(null);
   const [commentCount, setCommentCount] = useState<number>(0);
 
-  const { mutate: likePost } = useLikePost();
   const { mutate: savePost } = useSavePost();
   const { mutate: deleteSavePost } = useDeleteSavedPost();
 
@@ -92,27 +87,8 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
 
   const handleLikePost = async (e: React.MouseEvent) => {
     e.stopPropagation();
-
-    // If user already liked, remove like
-    if (checkIsLiked(likes, userId)) {
-      const likesArray = likes.filter((Id) => Id !== userId);
-      setLikes(likesArray);
-      likePost({ postId: post._id, likesArray });
-    } else {
-      // Remove any existing reaction first
-      if (currentReaction) {
-        await removeReaction(post._id);
-        const newReactions = { ...reactions };
-        newReactions[currentReaction] = newReactions[currentReaction].filter(id => id !== userId);
-        setReactions(newReactions);
-        setCurrentReaction(null);
-      }
-      
-      // Add like
-      const likesArray = [...likes, userId];
-      setLikes(likesArray);
-      likePost({ postId: post._id, likesArray });
-    }
+    // Heart is now a reaction, not a separate like
+    await handleReaction('heart');
   };
 
   const handleSavePost = (
@@ -141,13 +117,6 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
         setReactions(newReactions);
         setCurrentReaction(null);
       } else {
-        // Remove like if user has liked
-        if (checkIsLiked(likes, userId)) {
-          const likesArray = likes.filter((Id) => Id !== userId);
-          setLikes(likesArray);
-          likePost({ postId: post._id, likesArray });
-        }
-        
         // Add new reaction (this will remove any existing reaction)
         const response = await addReaction(post._id, reactionType);
         
@@ -169,20 +138,18 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
     ? "w-full"
     : "";
 
-  const isLiked = checkIsLiked(likes, userId);
-
   return (
     <div className={`flex justify-evenly items-center z-20 gap-1 sm:gap-2 ${containerStyles}`}>
-      {/* Heart/Like Reaction */}
+      {/* Heart Reaction */}
       <div className="flex gap-1 items-center" onClick={(e) => e.stopPropagation()}>
         <Heart
           size={18}
           onClick={handleLikePost}
           className="cursor-pointer transition-all sm:w-5 sm:h-5"
-          fill={isLiked ? '#FF1744' : 'none'}
-          stroke={isLiked ? '#FF1744' : 'currentColor'}
+          fill={currentReaction === 'heart' ? '#FF1744' : 'none'}
+          stroke={currentReaction === 'heart' ? '#FF1744' : 'currentColor'}
         />
-        <p className="text-xs sm:small-medium">{likes.length}</p>
+        <p className="text-xs sm:small-medium">{reactions.heart?.length || 0}</p>
       </div>
 
       {/* Fire Reaction */}

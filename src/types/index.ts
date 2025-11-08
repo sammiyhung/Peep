@@ -9,8 +9,27 @@ export type IUpdateUser = {
   name: string;
   bio: string;
   imageId: string;
-  imageUrl: URL | string;
+  imageUrl: string;
   file: File[];
+  username?: string;
+  currentMood?: string;
+  aboutMe?: string;
+  // Personal Information
+  dateOfBirth?: string;
+  gender?: string;
+  location?: string;
+  website?: string;
+  phone?: string;
+  // Professional Information
+  occupation?: string;
+  company?: string;
+  skills?: string;
+  interests?: string;
+  // Privacy Settings
+  showEmail?: boolean;
+  showPhone?: boolean;
+  showLocation?: boolean;
+  showDateOfBirth?: boolean;
 };
 
 export type INewPost = {
@@ -40,6 +59,25 @@ export type IUser = {
   email: string;
   imageUrl: string;
   bio: string;
+  aboutMe?: string;
+  currentMood?: string;
+  isEmailVerified?: boolean;
+  // Personal Information
+  dateOfBirth?: string;
+  gender?: string;
+  location?: string;
+  website?: string;
+  phone?: string;
+  // Professional Information
+  occupation?: string;
+  company?: string;
+  skills?: string;
+  interests?: string;
+  // Privacy Settings
+  showEmail?: boolean;
+  showPhone?: boolean;
+  showLocation?: boolean;
+  showDateOfBirth?: boolean;
 };
 
 export type INewUser = {

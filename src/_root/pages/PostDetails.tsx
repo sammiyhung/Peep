@@ -119,7 +119,7 @@ const PostDetails = () => {
 
   return (
     <div className="post_details-container">
-      <div className="hidden md:flex max-w-5xl w-full">
+      <div className="md:flex max-w-5xl w-full">
         <Button
           onClick={() => navigate(-1)}
           variant="ghost"
@@ -241,7 +241,7 @@ const PostDetails = () => {
               <div className="w-full mt-6">
                 <h4 className="base-semibold mb-4">
                   Reactions ({
-                    (post.likes?.length || 0) + 
+                    (reactionsData.heart?.length || 0) + 
                     (reactionsData.fire?.length || 0) + 
                     (reactionsData.mindBlown?.length || 0) + 
                     (reactionsData.vibeCheck?.length || 0) + 
@@ -249,23 +249,23 @@ const PostDetails = () => {
                   })
                 </h4>
                 <div className="flex flex-col gap-3">
-                  {/* Heart/Likes */}
-                  {post.likes && post.likes.length > 0 && (
+                  {/* Heart */}
+                  {reactionsData.heart && reactionsData.heart.length > 0 && (
                     <div className="flex items-start gap-3">
                       <Heart size={20} fill="#FF1744" stroke="#FF1744" />
                       <div className="flex flex-wrap gap-2">
-                        {post.likes.map((likeUser: any) => (
+                        {reactionsData.heart.map((heartUser: any) => (
                           <Link
-                            key={likeUser._id || likeUser}
-                            to={`/profile/${likeUser._id || likeUser}`}
+                            key={heartUser._id}
+                            to={`/profile/${heartUser._id}`}
                             className="flex items-center gap-2 px-3 py-1 rounded-lg bg-dark-4 hover:bg-dark-3 transition-all"
                           >
                             <img
-                              src={likeUser.imageUrl || '/assets/icons/profile-placeholder.svg'}
-                              alt={likeUser.name || 'User'}
+                              src={heartUser.imageUrl || '/assets/icons/profile-placeholder.svg'}
+                              alt={heartUser.name}
                               className="w-6 h-6 rounded-full"
                             />
-                            <span className="small-regular text-light-2">{likeUser.name || 'User'}</span>
+                            <span className="small-regular text-light-2">{heartUser.name}</span>
                           </Link>
                         ))}
                       </div>

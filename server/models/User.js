@@ -24,6 +24,22 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  emailVerificationToken: {
+    type: String,
+  },
+  emailVerificationExpires: {
+    type: Date,
+  },
+  passwordResetToken: {
+    type: String,
+  },
+  passwordResetExpires: {
+    type: Date,
+  },
   imageUrl: {
     type: String,
     default: '',
@@ -36,9 +52,76 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  aboutMe: {
+    type: String,
+    default: '',
+  },
+  // Personal Information
+  dateOfBirth: {
+    type: String,
+    default: '',
+  },
+  gender: {
+    type: String,
+    default: '',
+  },
+  location: {
+    type: String,
+    default: '',
+  },
+  website: {
+    type: String,
+    default: '',
+  },
+  phone: {
+    type: String,
+    default: '',
+  },
+  // Professional Information
+  occupation: {
+    type: String,
+    default: '',
+  },
+  company: {
+    type: String,
+    default: '',
+  },
+  skills: {
+    type: String,
+    default: '',
+  },
+  // Privacy Settings
+  showEmail: {
+    type: Boolean,
+    default: false,
+  },
+  showPhone: {
+    type: Boolean,
+    default: false,
+  },
+  showLocation: {
+    type: Boolean,
+    default: true,
+  },
+  showDateOfBirth: {
+    type: Boolean,
+    default: false,
+  },
   liked: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Post',
+  }],
+  saved: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Post',
+  }],
+  followers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }],
+  following: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
   }],
   // Peep Energy System
   energy: {
@@ -80,6 +163,7 @@ const userSchema = new mongoose.Schema({
   badges: [{
     name: String,
     icon: String,
+    color: String,
     earnedAt: {
       type: Date,
       default: Date.now,
@@ -98,6 +182,39 @@ const userSchema = new mongoose.Schema({
       type: Date,
       default: Date.now,
     },
+  },
+  // Authenticity Score
+  authenticityScore: {
+    type: Number,
+    default: 50,
+    min: 0,
+    max: 100,
+  },
+  authenticityMetrics: {
+    genuineInteractions: { type: Number, default: 0 },
+    helpfulContent: { type: Number, default: 0 },
+    spamReports: { type: Number, default: 0 },
+    lastCalculated: { type: Date, default: Date.now },
+  },
+  // Coffee Chat & Collaboration
+  coffeeChats: [{
+    withUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    scheduledAt: Date,
+    completedAt: Date,
+    rating: Number,
+  }],
+  collaborationRequests: [{
+    fromUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    project: String,
+    message: String,
+    status: { type: String, enum: ['pending', 'accepted', 'declined'], default: 'pending' },
+    createdAt: { type: Date, default: Date.now },
+  }],
+  // Preferences
+  preferences: {
+    openToCoffeeChat: { type: Boolean, default: true },
+    openToCollaboration: { type: Boolean, default: true },
+    preferredMoods: [String],
   },
 }, {
   timestamps: true,

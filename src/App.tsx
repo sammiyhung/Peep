@@ -18,9 +18,14 @@ import {
   CreateCirclePost,
 } from "@/_root/pages";
 import AuthLayout from "./_auth/AuthLayout";
+import PublicLayout from "./_auth/PublicLayout";
 import RootLayout from "./_root/RootLayout";
 import SignupForm from "@/_auth/forms/SignupForm";
 import SigninForm from "@/_auth/forms/SigninForm";
+import VerifyEmail from "@/_auth/pages/VerifyEmail";
+import ForgotPassword from "@/_auth/pages/ForgotPassword";
+import ResetPassword from "@/_auth/pages/ResetPassword";
+import EmailVerificationPrompt from "@/_auth/pages/EmailVerificationPrompt";
 import { Toaster } from "@/components/ui/toaster";
 
 import "./globals.css";
@@ -33,6 +38,14 @@ const App = () => {
         <Route element={<AuthLayout />}>
           <Route path="/sign-in" element={<SigninForm />} />
           <Route path="/sign-up" element={<SignupForm />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        </Route>
+
+        {/* Email verification and password reset (accessible to all, centered layout) */}
+        <Route element={<PublicLayout />}>
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/verify-email-prompt" element={<EmailVerificationPrompt />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Route>
 
         {/* private routes */}

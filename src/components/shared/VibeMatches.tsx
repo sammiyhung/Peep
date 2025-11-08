@@ -24,7 +24,7 @@ const VibeMatches = () => {
 
   const fetchVibeMatches = async () => {
     try {
-      const response = await api.get('/vibe/matches');
+      const response = await api.get('/api/vibe/matches');
       setMatches(response.data.matches);
       setIsLoading(false);
     } catch (error: any) {
@@ -37,12 +37,12 @@ const VibeMatches = () => {
     }
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return 'from-red-500 to-pink-500';
-    if (score >= 75) return 'from-purple-500 to-pink-500';
-    if (score >= 60) return 'from-blue-500 to-purple-500';
-    if (score >= 40) return 'from-green-500 to-blue-500';
-    return 'from-gray-500 to-gray-600';
+  const getScoreGradient = (score: number) => {
+    if (score >= 90) return 'linear-gradient(135deg, #ef4444, #ec4899)';
+    if (score >= 75) return 'linear-gradient(135deg, #a855f7, #ec4899)';
+    if (score >= 60) return 'linear-gradient(135deg, #3b82f6, #a855f7)';
+    if (score >= 40) return 'linear-gradient(135deg, #22c55e, #3b82f6)';
+    return 'linear-gradient(135deg, #6b7280, #4b5563)';
   };
 
   const getScoreEmoji = (score: number) => {
@@ -111,7 +111,7 @@ const VibeMatches = () => {
                 <div
                   className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 border-dark-1"
                   style={{
-                    background: `linear-gradient(135deg, ${getScoreColor(match.vibeMatchScore).split(' ')[0].replace('from-', '')}, ${getScoreColor(match.vibeMatchScore).split(' ')[2].replace('to-', '')})`,
+                    background: getScoreGradient(match.vibeMatchScore),
                   }}
                 >
                   {match.vibeMatchScore}

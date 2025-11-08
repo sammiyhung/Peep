@@ -81,12 +81,12 @@ router.get('/topics', auth, async (req, res) => {
 // @access  Private
 router.get('/waves', auth, async (req, res) => {
   try {
-    // Get posts from last 24 hours
-    const oneDayAgo = new Date();
-    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    // Get posts from last 7 days (increased from 24 hours for better data)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     
     const posts = await Post.find({
-      createdAt: { $gte: oneDayAgo },
+      createdAt: { $gte: sevenDaysAgo },
     }).populate('creator', 'name username imageUrl');
     
     const trendingPosts = await getTrendingPosts(posts, 10);

@@ -10,15 +10,20 @@ export async function createUserAccount(user: INewUser) {
   try {
     const response = await api.post('/api/auth/signup', user);
     
+    // New flow: signup returns email and emailVerificationRequired
+    // No token is provided until email is verified
     if (response.data.token) {
+      // Legacy flow (if token is provided)
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      return response.data.user;
     }
     
-    return response.data.user;
+    // New flow: return the response data (includes email and emailVerificationRequired)
+    return response.data;
   } catch (error: any) {
     console.log(error);
-    throw error.response?.data?.message || 'Error creating account';
+    throw error;
   }
 }
 
@@ -47,7 +52,8 @@ export async function signInAccount(user: { email: string; password: string }) {
     return response.data;
   } catch (error: any) {
     console.log(error);
-    throw error.response?.data?.message || 'Error signing in';
+    // Throw the entire error object so we can check status codes
+    throw error;
   }
 }
 
@@ -76,14 +82,19 @@ export async function getCurrentUser() {
 // ============================== SIGN OUT
 export async function signOutAccount() {
   try {
+    // Try to call the signout endpoint, but don't fail if it errors
     await api.post('/api/auth/signout');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    return { status: 'success' };
   } catch (error) {
-    console.log(error);
-    throw error;
+    // Ignore server errors during signout - we'll clear local storage anyway
+    console.log('Signout API call failed (this is okay):', error);
   }
+  
+  // Always clear local storage regardless of API call success
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  localStorage.removeItem('pendingVerificationEmail');
+  
+  return { status: 'success' };
 }
 
 // ============================================================
@@ -233,17 +244,7 @@ export async function likePost(postId: string, likesArray: string[]) {
   }
 }
 
-// ============================== SAVE POST
-export async function savePost(_userId: string, postId: string) {
-  // userId is extracted from JWT token on backend, parameter kept for compatibility
-  try {
-    const response = await api.post(`/api/posts/${postId}/save`);
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
-}
+// ============================== SAVE POST (moved to user endpoint below)
 
 // ============================== DELETE SAVED POST
 export async function deleteSavedPost(savedRecordId: string) {
@@ -313,15 +314,63 @@ export async function getUserById(userId: string) {
 export async function updateUser(user: IUpdateUser) {
   try {
     const formData = new FormData();
+    formData.append('name', user.name);
+    formData.append('bio', user.bio);
+    formData.append('imageUrl', user.imageUrl);
+    formData.append('imageId', user.imageId);
+    
+    if (user.username) {
+      formData.append('username', user.username);
+    }
+    
+    if (user.currentMood) {
+      formData.append('currentMood', user.currentMood);
+    }
+
+    if (user.aboutMe !== undefined) {
+      formData.append('aboutMe', user.aboutMe);
+    }
+
+    // Personal Information
+    if (user.dateOfBirth !== undefined) {
+      formData.append('dateOfBirth', user.dateOfBirth);
+    }
+    if (user.gender !== undefined) {
+      formData.append('gender', user.gender);
+    }
+    if (user.location !== undefined) {
+      formData.append('location', user.location);
+    }
+    if (user.website !== undefined) {
+      formData.append('website', user.website);
+    }
+    if (user.phone !== undefined) {
+      formData.append('phone', user.phone);
+    }
+
+    // Professional Information
+    if (user.occupation !== undefined) {
+      formData.append('occupation', user.occupation);
+    }
+    if (user.company !== undefined) {
+      formData.append('company', user.company);
+    }
+    if (user.skills !== undefined) {
+      formData.append('skills', user.skills);
+    }
+    if (user.interests !== undefined) {
+      formData.append('interests', user.interests);
+    }
+
+    // Privacy Settings
+    formData.append('showEmail', String(user.showEmail ?? false));
+    formData.append('showPhone', String(user.showPhone ?? false));
+    formData.append('showLocation', String(user.showLocation ?? true));
+    formData.append('showDateOfBirth', String(user.showDateOfBirth ?? false));
     
     if (user.file.length > 0) {
       formData.append('file', user.file[0]);
     }
-    
-    formData.append('name', user.name);
-    formData.append('bio', user.bio);
-    formData.append('imageUrl', user.imageUrl.toString());
-    formData.append('imageId', user.imageId);
 
     const response = await api.put(`/api/users/${user.userId}`, formData, {
       headers: {
@@ -330,6 +379,100 @@ export async function updateUser(user: IUpdateUser) {
     });
 
     return response.data;
+  } catch (error) {
+    console.error('updateUser API error:', error);
+    throw error;
+  }
+}
+
+// ============================== SAVED POSTS
+export async function savePost(userId: string, postId: string) {
+  try {
+    const response = await api.post(`/api/users/${userId}/save-post`, { postId });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function getSavedPosts(userId: string) {
+  try {
+    const response = await api.get(`/api/users/${userId}/saved-posts`);
+    return response.data.posts;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+// ============================== COFFEE CHAT & COLLABORATION
+export async function requestCoffeeChat(userId: string, scheduledAt?: Date) {
+  try {
+    const response = await api.post(`/api/users/${userId}/coffee-chat`, { scheduledAt });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function sendCollaborationRequest(userId: string, project: string, message: string) {
+  try {
+    const response = await api.post(`/api/users/${userId}/collaborate`, { project, message });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+// ============================== PEEP ENERGY & AUTHENTICITY
+export async function updateEnergy(userId: string, amount: number, reason: string) {
+  try {
+    const response = await api.post(`/api/users/${userId}/update-energy`, { amount, reason });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function calculateAuthenticityScore(userId: string) {
+  try {
+    const response = await api.post(`/api/users/${userId}/calculate-authenticity`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+// ============================== FOLLOW SYSTEM
+export async function followUser(userId: string) {
+  try {
+    const response = await api.post(`/api/users/${userId}/follow`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function getFollowers(userId: string) {
+  try {
+    const response = await api.get(`/api/users/${userId}/followers`);
+    return response.data.followers;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function getFollowing(userId: string) {
+  try {
+    const response = await api.get(`/api/users/${userId}/following`);
+    return response.data.following;
   } catch (error) {
     console.log(error);
     throw error;

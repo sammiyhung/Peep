@@ -1,20 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "../ui/button";
-import { useUserContext } from "@/context/AuthContext";
+import { useUserContext, INITIAL_USER } from "@/context/AuthContext";
 import { useSignOutAccount } from "@/lib/react-query/queries";
 
 const Topbar = () => {
   const navigate = useNavigate();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const { user } = useUserContext();
-  const { mutate: signOut, isSuccess } = useSignOutAccount();
+  const { user, setUser, setIsAuthenticated } = useUserContext();
+  const { mutate: signOut } = useSignOutAccount();
 
-  useEffect(() => {
-    if (isSuccess) navigate(0);
-  }, [isSuccess]);
+  const handleSignOut = () => {
+    // Clear auth state first
+    setIsAuthenticated(false);
+    setUser(INITIAL_USER);
+    
+    // Call signout API (will clear localStorage)
+    signOut();
+    
+    // Navigate to sign-in
+    navigate("/sign-in", { replace: true });
+  };
 
   return (
     <section className="topbar">
@@ -48,31 +55,20 @@ const Topbar = () => {
             )}
           </button>
 
-          {/* Help Button */}
-          <button 
-            className="p-2 hover:bg-gray-800 focus:outline-none relative rounded-full"
-            onClick={() => setIsHelpOpen(!isHelpOpen)}
+          {/* Settings Button */}
+          <Link 
+            to="/settings"
+            className="p-2 hover:bg-gray-800 focus:outline-none relative rounded-full flex items-center justify-center"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="h-6 w-6 text-gray-400" fill="gray">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 18.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25c.691 0 1.25.56 1.25 1.25s-.559 1.25-1.25 1.25zm1.961-5.928c-.904.975-.947 1.514-.935 2.178h-2.005c-.007-1.475.02-2.125 1.431-3.468.573-.544 1.025-.975.962-1.821-.058-.805-.73-1.226-1.365-1.226-.709 0-1.538.527-1.538 2.013h-2.01c0-2.4 1.409-3.95 3.59-3.95 1.036 0 1.942.339 2.55.955.57.578.865 1.372.854 2.298-.016 1.383-.857 2.291-1.534 3.021z"/>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            {/* Help Overlay */}
-            {isHelpOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-50 p-4">
-                <h3 className="font-semibold text-gray-800 mb-2">Help & Navigation</h3>
-                <p className="text-gray-700 text-sm">
-                  - Use the search bar to find messages.<br/>
-                  - Click on notifications to view updates.<br/>
-                  - Access settings to customize your experience.<br/>
-                  {/* Add more help content as needed */}
-                </p>
-              </div>
-            )}
-          </button>
+          </Link>
           <Button
             variant="ghost"
             className="shad-button_ghost"
-            onClick={() => signOut()}>
+            onClick={handleSignOut}>
             <img src="/assets/icons/logout.svg" alt="logout" />
           </Button>
           <Link to={`/profile/${user.id}`} className="flex-center gap-3">
