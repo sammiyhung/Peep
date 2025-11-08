@@ -3,31 +3,22 @@ const crypto = require('crypto');
 
 // Create transporter
 const createTransporter = () => {
-  // For development without email config, use a test account
-  // This will just log emails to console instead of sending them
-  
-  if (process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    // Real email service configured
-    return nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT || 465,
-      secure: process.env.EMAIL_SECURE === 'true',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
+  if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new Error('Email configuration is missing. Please set EMAIL_HOST, EMAIL_USER, and EMAIL_PASS environment variables.');
   }
-  
-  // Development fallback - creates a test account that logs to console
-  // This won't actually send emails but will show preview URLs
+
   return nodemailer.createTransport({
-    streamTransport: true,
-    newline: 'unix',
-    buffer: true,
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT || 465,
+    secure: process.env.EMAIL_SECURE === 'true',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false,
+      ciphers: "SSLv3",
+    },
   });
 };
 
@@ -242,29 +233,17 @@ const sendVerificationEmail = async (user, token) => {
   
   try {
     const info = await transporter.sendMail(mailOptions);
-    
-    // Log for development
-    if (!process.env.EMAIL_HOST) {
-      console.log('\n📧 VERIFICATION EMAIL (Development Mode)');
-      console.log('To:', user.email);
-      console.log('Subject:', mailOptions.subject);
-      console.log('Verification URL:', verificationUrl);
-      console.log('Message ID:', info.messageId);
-      console.log('─────────────────────────────────────\n');
-    } else {
-      console.log('✅ Verification email sent to:', user.email);
-    }
-    
+    console.log('✅ Verification email sent to:', user.email);
     return true;
   } catch (error) {
-    console.error('❌ Error sending verification email:', error);
+    console.error('❌ Error sending verification email:', error.message);
     console.error('Email config:', {
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
       user: process.env.EMAIL_USER ? '***configured***' : 'NOT SET',
       from: process.env.EMAIL_FROM
     });
-    throw error; // Throw error instead of silently returning true
+    throw error;
   }
 };
 
@@ -480,29 +459,17 @@ const sendPasswordResetEmail = async (user, token) => {
   
   try {
     const info = await transporter.sendMail(mailOptions);
-    
-    // Log for development
-    if (!process.env.EMAIL_HOST) {
-      console.log('\n🔐 PASSWORD RESET EMAIL (Development Mode)');
-      console.log('To:', user.email);
-      console.log('Subject:', mailOptions.subject);
-      console.log('Reset URL:', resetUrl);
-      console.log('Message ID:', info.messageId);
-      console.log('─────────────────────────────────────\n');
-    } else {
-      console.log('✅ Password reset email sent to:', user.email);
-    }
-    
+    console.log('✅ Password reset email sent to:', user.email);
     return true;
   } catch (error) {
-    console.error('❌ Error sending password reset email:', error);
+    console.error('❌ Error sending password reset email:', error.message);
     console.error('Email config:', {
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
       user: process.env.EMAIL_USER ? '***configured***' : 'NOT SET',
       from: process.env.EMAIL_FROM
     });
-    throw error; // Throw error instead of silently returning true
+    throw error;
   }
 };
 
