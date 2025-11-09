@@ -1,22 +1,10 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 const crypto = require('crypto');
 
-// Create transporter
-const createTransporter = () => {
-  if (!process.env.SENDGRID_API_KEY) {
-    throw new Error('SendGrid API key is missing. Please set SENDGRID_API_KEY environment variable.');
-  }
-
-  return nodemailer.createTransport({
-    host: 'smtp.sendgrid.net',
-    port: 587,
-    secure: false,
-    auth: {
-      user: 'apikey',
-      pass: process.env.SENDGRID_API_KEY,
-    },
-  });
-};
+// Initialize SendGrid
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
 
 /**
  * Generate verification token
@@ -29,13 +17,15 @@ const generateVerificationToken = () => {
  * Send verification email
  */
 const sendVerificationEmail = async (user, token) => {
-  const transporter = createTransporter();
-  
+  if (!process.env.SENDGRID_API_KEY) {
+    throw new Error('SendGrid API key is missing. Please set SENDGRID_API_KEY environment variable.');
+  }
+
   const verificationUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify-email?token=${token}`;
   
-  const mailOptions = {
-    from: `"Peep" <${process.env.EMAIL_FROM || 'noreply@peep.com'}>`,
+  const msg = {
     to: user.email,
+    from: process.env.EMAIL_FROM || 'noreply@peep.com',
     subject: '🎉 Verify Your Email - Peep',
     html: `
       <!DOCTYPE html>
@@ -228,11 +218,14 @@ const sendVerificationEmail = async (user, token) => {
   };
   
   try {
-    const info = await transporter.sendMail(mailOptions);
+    await sgMail.send(msg);
     console.log('✅ Verification email sent via SendGrid to:', user.email);
     return true;
   } catch (error) {
     console.error('❌ Error sending verification email:', error.message);
+    if (error.response) {
+      console.error('SendGrid error details:', error.response.body);
+    }
     console.error('SendGrid config:', {
       apiKey: process.env.SENDGRID_API_KEY ? '***configured***' : 'NOT SET',
       from: process.env.EMAIL_FROM || 'NOT SET'
@@ -245,13 +238,15 @@ const sendVerificationEmail = async (user, token) => {
  * Send password reset email
  */
 const sendPasswordResetEmail = async (user, token) => {
-  const transporter = createTransporter();
-  
+  if (!process.env.SENDGRID_API_KEY) {
+    throw new Error('SendGrid API key is missing. Please set SENDGRID_API_KEY environment variable.');
+  }
+
   const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
   
-  const mailOptions = {
-    from: `"Peep" <${process.env.EMAIL_FROM || 'noreply@peep.com'}>`,
+  const msg = {
     to: user.email,
+    from: process.env.EMAIL_FROM || 'noreply@peep.com',
     subject: '🔐 Reset Your Password - Peep',
     html: `
       <!DOCTYPE html>
@@ -406,7 +401,7 @@ const sendPasswordResetEmail = async (user, token) => {
         <body>
           <div class="email-wrapper">
             <div class="header">
-              <img src="${process.env.CLIENT_URL || 'https://peep-cr6u.onrender.com/'}/assets/images/logo.png" alt="Peep Logo" class="logo">
+              <img src="${process.env.CLIENT_URL || 'https://peep-cr6u.onrender.com'}/assets/images/logo.png" alt="Peep Logo" class="logo">
               <p class="header-text">Password Reset Request 🔐</p>
             </div>
             
@@ -452,11 +447,14 @@ const sendPasswordResetEmail = async (user, token) => {
   };
   
   try {
-    const info = await transporter.sendMail(mailOptions);
+    await sgMail.send(msg);
     console.log('✅ Password reset email sent via SendGrid to:', user.email);
     return true;
   } catch (error) {
     console.error('❌ Error sending password reset email:', error.message);
+    if (error.response) {
+      console.error('SendGrid error details:', error.response.body);
+    }
     console.error('SendGrid config:', {
       apiKey: process.env.SENDGRID_API_KEY ? '***configured***' : 'NOT SET',
       from: process.env.EMAIL_FROM || 'NOT SET'

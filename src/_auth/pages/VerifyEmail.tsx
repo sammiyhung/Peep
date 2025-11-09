@@ -89,7 +89,7 @@ const VerifyEmail = () => {
               </p>
               <button
                 onClick={() => navigate('/sign-in')}
-                className="shad-button_primary mt-4 p-10"
+                className="shad-button_primary mt-4 p-5"
               >
                 Go to Login Now
               </button>
