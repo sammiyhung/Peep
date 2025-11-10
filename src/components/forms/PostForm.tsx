@@ -19,7 +19,7 @@ import {
 import { PostValidation } from "@/lib/validation";
 import { useToast } from "@/components/ui/use-toast";
 import { useUserContext } from "@/context/AuthContext";
-import { FileUploader, Loader } from "@/components/shared";
+import { FileUploader, Loader, UploadToast } from "@/components/shared";
 import { useCreatePost, useUpdatePost } from "@/lib/react-query/queries";
 
 type PostFormProps = {
@@ -44,6 +44,10 @@ const PostForm = ({ post, action }: PostFormProps) => {
   const { toast } = useToast();
   const { user } = useUserContext();
   const [selectedMood, setSelectedMood] = useState(post?.mood || 'neutral');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadComplete, setUploadComplete] = useState(false);
+  const [uploadFileName, setUploadFileName] = useState('');
   
   const form = useForm<z.infer<typeof PostValidation>>({
     resolver: zodResolver(PostValidation),
@@ -81,18 +85,51 @@ const PostForm = ({ post, action }: PostFormProps) => {
     }
 
     // ACTION = CREATE
-    const newPost = await createPost({
-      ...value,
-      userId: user.id,
-      mood: selectedMood,
-    });
-
-    if (!newPost) {
-      toast({
-        title: `${action} post failed. Please try again.`,
-      });
-    }
+    // Start background upload
+    setIsUploading(true);
+    setUploadProgress(0);
+    setUploadFileName(value.file?.[0]?.name || 'post');
+    
+    // Navigate immediately
     navigate("/");
+    
+    // Simulate upload progress (in real app, track actual upload)
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return 90;
+        }
+        return prev + 10;
+      });
+    }, 200);
+    
+    try {
+      const newPost = await createPost({
+        ...value,
+        userId: user.id,
+        mood: selectedMood,
+      });
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      setUploadComplete(true);
+      
+      if (!newPost) {
+        toast({
+          title: `${action} post failed. Please try again.`,
+          variant: "destructive",
+        });
+        setIsUploading(false);
+      }
+    } catch (error) {
+      clearInterval(progressInterval);
+      toast({
+        title: "Upload failed. Please try again.",
+        variant: "destructive",
+      });
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -122,11 +159,11 @@ const PostForm = ({ post, action }: PostFormProps) => {
           name="file"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="shad-form_label">Add Photos</FormLabel>
+              <FormLabel className="shad-form_label">Add Photos/Videos</FormLabel>
               <FormControl>
                 <FileUploader
                   fieldChange={field.onChange}
-                  mediaUrl={post?.imageUrl}
+                  mediaUrl={post?.mediaUrls || post?.imageUrl || []}
                 />
               </FormControl>
               <FormMessage className="shad-form_message" />
@@ -218,6 +255,20 @@ const PostForm = ({ post, action }: PostFormProps) => {
           </Button>
         </div>
       </form>
+
+      {/* Upload Toast */}
+      {isUploading && (
+        <UploadToast
+          progress={uploadProgress}
+          fileName={uploadFileName}
+          isComplete={uploadComplete}
+          onClose={() => {
+            setIsUploading(false);
+            setUploadComplete(false);
+            setUploadProgress(0);
+          }}
+        />
+      )}
     </Form>
   );
 };

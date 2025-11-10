@@ -17,12 +17,12 @@ const upload = multer({ storage });
 // @route   POST /api/posts
 // @desc    Create a new post
 // @access  Private
-router.post('/', auth, upload.single('file'), async (req, res) => {
+router.post('/', auth, upload.array('files', 10), async (req, res) => {
   try {
     const { caption, location, tags, mood = 'neutral', circleId } = req.body;
 
-    if (!req.file) {
-      return res.status(400).json({ message: 'Image file is required' });
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: 'At least one media file is required' });
     }
 
     // Get user and check energy
@@ -65,18 +65,35 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
       });
     }
 
-    // Upload to Cloudinary
-    const result = await uploadToCloudinary(req.file.buffer, 'peep/posts');
+    // Upload all files to Cloudinary
+    const uploadPromises = req.files.map(file => {
+      // Determine folder based on file type
+      const folder = file.mimetype.startsWith('video/') ? 'peep/videos' : 'peep/posts';
+      return uploadToCloudinary(file.buffer, folder, file.mimetype.startsWith('video/') ? 'video' : 'image');
+    });
+
+    const uploadResults = await Promise.all(uploadPromises);
+
+    // Extract URLs, IDs, and types
+    const mediaUrls = uploadResults.map(result => result.secure_url);
+    const mediaIds = uploadResults.map(result => result.public_id);
+    const mediaTypes = req.files.map(file => 
+      file.mimetype.startsWith('video/') ? 'video' : 'image'
+    );
 
     // Convert tags string to array
     const tagsArray = tags ? tags.replace(/ /g, '').split(',') : [];
 
-    // Create post
+    // Create post with multiple media support
     const newPost = new Post({
       creator: req.userId,
       caption,
-      imageUrl: result.secure_url,
-      imageId: result.public_id,
+      mediaUrls,
+      mediaIds,
+      mediaTypes,
+      // Keep first media as imageUrl for backward compatibility
+      imageUrl: mediaUrls[0],
+      imageId: mediaIds[0],
       location: location || '',
       tags: tagsArray,
       mood: mood || user.currentMood || 'neutral',
@@ -220,7 +237,7 @@ router.get('/:id', auth, async (req, res) => {
 // @route   PUT /api/posts/:id
 // @desc    Update post
 // @access  Private
-router.put('/:id', auth, upload.single('file'), async (req, res) => {
+router.put('/:id', auth, upload.array('files', 10), async (req, res) => {
   try {
     const { caption, location, tags, imageUrl, imageId } = req.body;
 
@@ -235,21 +252,34 @@ router.put('/:id', auth, upload.single('file'), async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this post' });
     }
 
-    let image = { imageUrl, imageId };
-
-    // If new file uploaded
-    if (req.file) {
-      // Upload new image
-      const result = await uploadToCloudinary(req.file.buffer, 'peep/posts');
-      image = {
-        imageUrl: result.secure_url,
-        imageId: result.public_id,
-      };
-
-      // Delete old image
-      if (post.imageId) {
+    // If new files uploaded
+    if (req.files && req.files.length > 0) {
+      // Delete old media files
+      if (post.mediaIds && post.mediaIds.length > 0) {
+        const deletePromises = post.mediaIds.map(id => deleteFromCloudinary(id));
+        await Promise.all(deletePromises);
+      } else if (post.imageId) {
         await deleteFromCloudinary(post.imageId);
       }
+
+      // Upload new files
+      const uploadPromises = req.files.map(file => {
+        const folder = file.mimetype.startsWith('video/') ? 'peep/videos' : 'peep/posts';
+        return uploadToCloudinary(file.buffer, folder);
+      });
+
+      const uploadResults = await Promise.all(uploadPromises);
+
+      // Update media arrays
+      post.mediaUrls = uploadResults.map(result => result.secure_url);
+      post.mediaIds = uploadResults.map(result => result.public_id);
+      post.mediaTypes = req.files.map(file => 
+        file.mimetype.startsWith('video/') ? 'video' : 'image'
+      );
+      
+      // Update backward compatibility fields
+      post.imageUrl = post.mediaUrls[0];
+      post.imageId = post.mediaIds[0];
     }
 
     // Convert tags string to array
@@ -257,8 +287,6 @@ router.put('/:id', auth, upload.single('file'), async (req, res) => {
 
     // Update post
     post.caption = caption;
-    post.imageUrl = image.imageUrl;
-    post.imageId = image.imageId;
     post.location = location || '';
     post.tags = tagsArray;
 
@@ -288,8 +316,13 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to delete this post' });
     }
 
-    // Delete image from Cloudinary
-    if (post.imageId) {
+    // Delete all media from Cloudinary
+    if (post.mediaIds && post.mediaIds.length > 0) {
+      // Delete all media files
+      const deletePromises = post.mediaIds.map(id => deleteFromCloudinary(id));
+      await Promise.all(deletePromises);
+    } else if (post.imageId) {
+      // Backward compatibility: delete single image
       await deleteFromCloudinary(post.imageId);
     }
 

@@ -105,7 +105,14 @@ export async function signOutAccount() {
 export async function createPost(post: INewPost) {
   try {
     const formData = new FormData();
-    formData.append('file', post.file[0]);
+    
+    // Append multiple files
+    if (post.file && post.file.length > 0) {
+      post.file.forEach((file) => {
+        formData.append('files', file);
+      });
+    }
+    
     formData.append('caption', post.caption);
     formData.append('location', post.location || '');
     formData.append('tags', post.tags || '');

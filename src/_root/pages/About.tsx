@@ -59,7 +59,7 @@ const About = () => {
   const hasAnyInfo = currentUser.location || currentUser.dateOfBirth || currentUser.email || currentUser.phone || currentUser.website || currentUser.gender || currentUser.occupation || currentUser.company || currentUser.skills || formattedInterests;
 
   return (
-    <div className="flex flex-col gap-3 w-full max-w-2xl animate-fade-in">
+    <div className="flex flex-col gap-3 w-full animate-fade-in">
       {/* About Me Section */}
       {currentUser.aboutMe && (
         <div className="glass-card p-3 md:p-4 rounded-lg">
@@ -76,7 +76,6 @@ const About = () => {
         <div className="glass-card p-3 md:p-4 rounded-lg">
           <h3 className="text-base md:text-lg font-bold mb-2">Current Vibe</h3>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-500/20 border border-primary-500/30">
-            <span className="text-2xl">✨</span>
             <span className="text-light-1 font-medium capitalize">{currentUser.currentMood}</span>
           </div>
         </div>

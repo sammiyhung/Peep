@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Heart, Flame, Zap, Sparkles, MessageSquare } from "lucide-react";
 
 import { Button, Textarea } from "@/components/ui";
-import { GridPostList, PostStats } from "@/components/shared";
+import { MasonryGrid, PostStats, MediaCarousel } from "@/components/shared";
 import { getComments, createComment, deleteComment, getPostReactions } from "@/lib/api/api";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -154,11 +154,19 @@ const PostDetails = () => {
         </div>
       ) : (
         <div className="post_details-card">
-          <img
-            src={post?.imageUrl}
-            alt="creator"
-            className="post_details-img"
-          />
+          {post?.mediaUrls && post.mediaUrls.length > 0 ? (
+            <MediaCarousel 
+              media={post.mediaUrls} 
+              className="post_details-img" 
+              showVideoControls={true}
+            />
+          ) : post?.imageUrl ? (
+            <img
+              src={post.imageUrl}
+              alt="post media"
+              className="post_details-img"
+            />
+          ) : null}
 
           <div className="post_details-info">
             <div className="flex-between w-full">
@@ -485,7 +493,7 @@ const PostDetails = () => {
             ))}
           </div>
         ) : (
-          <GridPostList posts={relatedPosts} />
+          <MasonryGrid posts={relatedPosts} />
         )}
       </div>
     </div>

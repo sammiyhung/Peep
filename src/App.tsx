@@ -27,13 +27,15 @@ import ForgotPassword from "@/_auth/pages/ForgotPassword";
 import ResetPassword from "@/_auth/pages/ResetPassword";
 import EmailVerificationPrompt from "@/_auth/pages/EmailVerificationPrompt";
 import { Toaster } from "@/components/ui/toaster";
+import { VideoProvider } from "@/context/VideoContext";
 
 import "./globals.css";
 
 const App = () => {
   return (
-    <main className="flex h-screen">
-      <Routes>
+    <VideoProvider>
+      <main className="flex h-screen">
+        <Routes>
         {/* public routes */}
         <Route element={<AuthLayout />}>
           <Route path="/sign-in" element={<SigninForm />} />
@@ -66,10 +68,11 @@ const App = () => {
           <Route path="/profile/:id/*" element={<Profile />} />
           <Route path="/update-profile/:id" element={<UpdateProfile />} />
         </Route>
-      </Routes>
+        </Routes>
 
-      <Toaster />
-    </main>
+        <Toaster />
+      </main>
+    </VideoProvider>
   );
 };
 

@@ -401,7 +401,7 @@
   }
 
   .post_details-img {
-    @apply h-80 lg:h-[480px] xl:w-[48%] rounded-t-[30px] xl:rounded-l-[24px] xl:rounded-tr-none object-contain p-5 bg-dark-1;
+    @apply w-full h-auto xl:w-[48%] rounded-t-[30px] xl:rounded-l-[24px] xl:rounded-tr-none object-cover bg-dark-1;
   }
 
   .post_details-info {
@@ -429,7 +429,28 @@
   }
 
   .profile-tab {
-    @apply flex-center gap-3 py-4 w-48 bg-dark-2  transition flex-1 xl:flex-initial;
+    @apply flex-center gap-3 py-4 bg-dark-2 transition flex-1 hover:bg-dark-3;
+  }
+
+  .profile-tab .tab-text {
+    @apply text-sm md:text-base transition-all;
+  }
+
+  /* Responsive tab text sizing */
+  @media (min-width: 768px) and (max-width: 1024px) {
+    .profile-tab .tab-text {
+      font-size: 0.875rem; /* 14px */
+    }
+    .profile-tab {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+  }
+
+  @media (min-width: 1024px) and (max-width: 1280px) {
+    .profile-tab .tab-text {
+      font-size: 0.9375rem; /* 15px */
+    }
   }
 
   /* Saved */
@@ -579,7 +600,8 @@
   }
 
   .grid-post_link {
-    @apply flex rounded-[24px] border border-dark-4 overflow-hidden cursor-pointer w-full h-full;
+    @apply flex rounded-[24px] border border-dark-4 overflow-hidden cursor-pointer w-full;
+    height: auto;
   }
 
   .grid-post_user {
@@ -642,9 +664,10 @@
   }
 
   .post-card_img {
-    @apply h-64 xs:h-[400px] lg:h-[450px] w-full rounded-[24px] mb-5;
-    object-fit: contain;
-    background: rgba(0, 0, 0, 0.3);
+    @apply w-full rounded-[24px] mb-5;
+    object-fit: cover;
+    height: auto;
+    max-height: none;
     transition: transform 0.3s ease;
   }
 

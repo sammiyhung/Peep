@@ -3,7 +3,7 @@ import { useInView } from "react-intersection-observer";
 import { Input } from "@/components/ui";
 import { useNavigate } from 'react-router-dom';
 import useDebounce from "@/hooks/useDebounce";
-import { GridPostList } from "@/components/shared";
+import { MasonryGrid, Loader } from "@/components/shared";
 import { useGetPosts, useSearchPosts } from "@/lib/react-query/queries";
 
 export type SearchResultProps = {
@@ -13,9 +13,9 @@ export type SearchResultProps = {
 
 const SearchResults = ({ isSearchFetching, searchedPosts }: SearchResultProps) => {
   if (isSearchFetching) {
-    return <GridPostList posts={[]} isLoading={true} />;
+    return <Loader />;
   } else if (searchedPosts && searchedPosts.documents.length > 0) {
-    return <GridPostList posts={searchedPosts.documents} />;
+    return <MasonryGrid posts={searchedPosts.documents} />;
   } else {
     return (
       <p className="text-light-4 mt-10 text-center w-full">No results found</p>
@@ -39,8 +39,6 @@ const Explore = () => {
   }, [inView, searchValue]);
 
   const shouldShowSearchResults = searchValue !== "";
-  const shouldShowPosts = !shouldShowSearchResults && 
-    posts && posts.pages.every((item) => item.documents.length === 0);
 
   return (
     <div className="explore-container">
@@ -89,26 +87,26 @@ const Explore = () => {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-9 w-full max-w-5xl">
+      <div className="w-full max-w-7xl">
         {!posts ? (
-          <GridPostList posts={[]} isLoading={true} />
+          <Loader />
         ) : shouldShowSearchResults ? (
           <SearchResults
             isSearchFetching={isSearchFetching}
             searchedPosts={searchedPosts}
           />
-        ) : shouldShowPosts ? (
+        ) : posts.pages.length === 0 ? (
           <p className="text-light-4 mt-10 text-center w-full">End of posts</p>
         ) : (
           posts.pages.map((item, index) => (
-            <GridPostList key={`page-${index}`} posts={item.documents} />
+            <MasonryGrid key={`page-${index}`} posts={item.documents} />
           ))
         )}
       </div>
 
       {hasNextPage && !searchValue && (
         <div ref={ref} className="mt-10">
-          <GridPostList posts={[]} isLoading={true} />
+          <Loader />
         </div>
       )}
     </div>

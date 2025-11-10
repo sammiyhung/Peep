@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Smile, Sparkles, Wind, Target, Palette, Brain, Zap, Waves, Minus } from 'lucide-react';
 
-import { PostStats } from "@/components/shared";
+import { PostStats, MediaCarousel } from "@/components/shared";
 import { multiFormatDateString } from "@/lib/utils";
 import { useUserContext } from "@/context/AuthContext";
 
@@ -23,6 +23,7 @@ const MOODS: Record<string, { label: string; icon: any; color: string }> = {
 
 const PostCard = ({ post }: PostCardProps) => {
   const { user } = useUserContext();
+  const navigate = useNavigate();
 
   if (!post.creator) return;
 
@@ -85,13 +86,29 @@ const PostCard = ({ post }: PostCardProps) => {
             ))}
           </ul>
         </div>
-
-        <img
-          src={post.imageUrl || "/assets/icons/profile-placeholder.svg"}
-          alt="post image"
-          className="post-card_img"
-        />
       </Link>
+
+      {/* Media - clickable for images, interactive for videos */}
+      {post.mediaUrls && post.mediaUrls.length > 0 ? (
+        <div onClick={(e) => {
+          // Only navigate if clicking on the container background, not video or controls
+          const target = e.target as HTMLElement;
+          if (target === e.currentTarget) {
+            // Clicked on the div itself, not its children
+            navigate(`/posts/${post._id}`);
+          }
+        }}>
+          <MediaCarousel media={post.mediaUrls} showVideoControls={true} />
+        </div>
+      ) : post.imageUrl ? (
+        <Link to={`/posts/${post._id}`}>
+          <img
+            src={post.imageUrl}
+            alt="post image"
+            className="post-card_img"
+          />
+        </Link>
+      ) : null}
 
       {/* Mood Display */}
       {mood && mood !== 'neutral' && (

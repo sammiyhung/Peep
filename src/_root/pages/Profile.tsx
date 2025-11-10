@@ -7,14 +7,14 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { Zap, Award, Coffee, Users, MessageCircle, UserPlus, UserMinus } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Zap, Award, Coffee, Users, MessageCircle, UserPlus, UserMinus, ChevronDown } from "lucide-react";
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from "@/components/ui";
 import { useUserContext } from "@/context/AuthContext";
 import { useGetUserById } from "@/lib/react-query/queries";
-import { GridPostList, Loader, ImageViewer } from "@/components/shared";
+import { MasonryGrid, Loader, ImageViewer } from "@/components/shared";
 import { followUser, requestCoffeeChat, sendCollaborationRequest } from "@/lib/api/api";
 import { useToast } from "@/components/ui/use-toast";
 import { QUERY_KEYS } from "@/lib/react-query/queryKeys";
@@ -79,6 +79,8 @@ const Profile = () => {
   const [followingCount, setFollowingCount] = useState(0);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
   const [showImageViewer, setShowImageViewer] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -87,6 +89,18 @@ const Profile = () => {
       setIsFollowing(currentUser.followers?.includes(user.id) || false);
     }
   }, [currentUser, user.id]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   if (!currentUser)
     return (
@@ -324,54 +338,138 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="flex max-w-5xl w-full overflow-x-auto scrollbar-hide">
-        <Link
-          to={`/profile/${id}`}
-          className={`profile-tab rounded-l-lg flex-shrink-0 ${
-            pathname === `/profile/${id}` && "!bg-dark-3"
-          }`}>
-          <Zap className="w-5 h-5" />
-          About
-        </Link>
-        <Link
-          to={`/profile/${id}/posts`}
-          className={`profile-tab flex-shrink-0 ${
-            pathname === `/profile/${id}/posts` && "!bg-dark-3"
-          }`}>
-          <img
-            src={"/assets/icons/posts.svg"}
-            alt="posts"
-            width={20}
-            height={20}
-          />
-          Posts
-        </Link>
-        <Link
-          to={`/profile/${id}/followers`}
-          className={`profile-tab flex-shrink-0 ${
-            pathname === `/profile/${id}/followers` && "!bg-dark-3"
-          }`}>
-          <Users className="w-5 h-5" />
-          Followers
-        </Link>
-        <Link
-          to={`/profile/${id}/following`}
-          className={`profile-tab rounded-r-lg flex-shrink-0 ${
-            pathname === `/profile/${id}/following` && "!bg-dark-3"
-          }`}>
-          <UserPlus className="w-5 h-5" />
-          Following
-        </Link>
-      </div>
+        {/* Desktop Tabs - Hidden on small screens */}
+        <div className="hidden md:flex max-w-5xl w-full">
+          <Link
+            to={`/profile/${id}`}
+            className={`profile-tab rounded-l-lg ${
+              pathname === `/profile/${id}` && "!bg-dark-3"
+            }`}>
+            <Zap className="w-5 h-5" />
+            <span className="tab-text">About</span>
+          </Link>
+          <Link
+            to={`/profile/${id}/posts`}
+            className={`profile-tab ${
+              pathname === `/profile/${id}/posts` && "!bg-dark-3"
+            }`}>
+            <img
+              src={"/assets/icons/posts.svg"}
+              alt="posts"
+              width={20}
+              height={20}
+            />
+            <span className="tab-text">Posts</span>
+          </Link>
+          <Link
+            to={`/profile/${id}/followers`}
+            className={`profile-tab ${
+              pathname === `/profile/${id}/followers` && "!bg-dark-3"
+            }`}>
+            <Users className="w-5 h-5" />
+            <span className="tab-text">Followers</span>
+          </Link>
+          <Link
+            to={`/profile/${id}/following`}
+            className={`profile-tab rounded-r-lg ${
+              pathname === `/profile/${id}/following` && "!bg-dark-3"
+            }`}>
+            <UserPlus className="w-5 h-5" />
+            <span className="tab-text">Following</span>
+          </Link>
+        </div>
 
-        <div className="flex flex-col items-center w-full max-w-5xl">
+        {/* Mobile Dropdown - Visible only on small screens */}
+        <div className="md:hidden w-full max-w-5xl relative" ref={dropdownRef}>
+          <button
+            onClick={() => setShowDropdown(!showDropdown)}
+            className="w-full flex items-center justify-between bg-dark-2 px-4 py-3 rounded-lg text-light-1 hover:bg-dark-3 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              {pathname === `/profile/${id}` && (
+                <>
+                  <Zap className="w-5 h-5" />
+                  <span>About</span>
+                </>
+              )}
+              {pathname === `/profile/${id}/posts` && (
+                <>
+                  <img src={"/assets/icons/posts.svg"} alt="posts" width={20} height={20} />
+                  <span>Posts</span>
+                </>
+              )}
+              {pathname === `/profile/${id}/followers` && (
+                <>
+                  <Users className="w-5 h-5" />
+                  <span>Followers</span>
+                </>
+              )}
+              {pathname === `/profile/${id}/following` && (
+                <>
+                  <UserPlus className="w-5 h-5" />
+                  <span>Following</span>
+                </>
+              )}
+            </div>
+            <ChevronDown className={`w-5 h-5 transition-transform ${
+              showDropdown ? 'rotate-180' : ''
+            }`} />
+          </button>
+
+          {showDropdown && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-dark-3 rounded-lg border border-dark-4 shadow-lg z-50 overflow-hidden animate-in fade-in-0 slide-in-from-top-2 duration-200">
+              <Link
+                to={`/profile/${id}`}
+                onClick={() => setShowDropdown(false)}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-dark-4 transition-colors ${
+                  pathname === `/profile/${id}` ? 'bg-dark-4 text-primary-500' : 'text-light-1'
+                }`}
+              >
+                <Zap className="w-5 h-5" />
+                <span>About</span>
+              </Link>
+              <Link
+                to={`/profile/${id}/posts`}
+                onClick={() => setShowDropdown(false)}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-dark-4 transition-colors ${
+                  pathname === `/profile/${id}/posts` ? 'bg-dark-4 text-primary-500' : 'text-light-1'
+                }`}
+              >
+                <img src={"/assets/icons/posts.svg"} alt="posts" width={20} height={20} />
+                <span>Posts</span>
+              </Link>
+              <Link
+                to={`/profile/${id}/followers`}
+                onClick={() => setShowDropdown(false)}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-dark-4 transition-colors ${
+                  pathname === `/profile/${id}/followers` ? 'bg-dark-4 text-primary-500' : 'text-light-1'
+                }`}
+              >
+                <Users className="w-5 h-5" />
+                <span>Followers</span>
+              </Link>
+              <Link
+                to={`/profile/${id}/following`}
+                onClick={() => setShowDropdown(false)}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-dark-4 transition-colors ${
+                  pathname === `/profile/${id}/following` ? 'bg-dark-4 text-primary-500' : 'text-light-1'
+                }`}
+              >
+                <UserPlus className="w-5 h-5" />
+                <span>Following</span>
+              </Link>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col w-full">
           <Routes>
             <Route index element={<About />} />
             <Route
               path="/posts"
               element={
                 currentUser.posts && currentUser.posts.length > 0 ? (
-                  <GridPostList posts={currentUser.posts} showUser={false} />
+                  <MasonryGrid posts={currentUser.posts} showUser={false} />
                 ) : (
                   <p className="text-light-4 text-center mt-10 w-full">No posts yet</p>
                 )

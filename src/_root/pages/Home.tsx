@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PostCard, VibeMatchScore } from "@/components/shared";
 import EnergyBar from "@/components/shared/EnergyBar";
 import MoodSelector from "@/components/shared/MoodSelector";
@@ -10,6 +10,8 @@ import { api } from '@/lib/api/config';
 
 const Home = () => {
   const navigate = useNavigate();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const hasRestoredRef = useRef(false);
   const [currentMood, setCurrentMood] = useState('neutral');
   const [feedFilter, setFeedFilter] = useState<'all' | 'mood' | 'trending'>('all');
   const [vibeStats, setVibeStats] = useState<any>(null);
@@ -20,6 +22,78 @@ const Home = () => {
     isLoading: isPostLoading,
     isError: isErrorPosts,
   } = useGetRecentPosts();
+
+  // Initialize - reset the restoration flag on component mount
+  useEffect(() => {
+    hasRestoredRef.current = false;
+    return () => {
+      hasRestoredRef.current = false;
+    };
+  }, []);
+
+  // Restore scroll position ONCE on mount
+  useEffect(() => {
+    if (!posts || hasRestoredRef.current) return;
+
+    const savedPosition = sessionStorage.getItem('homeScrollPosition');
+    const shouldRestore = sessionStorage.getItem('homeScrollSaved');
+    
+    // Mark as handled immediately to prevent any re-runs
+    hasRestoredRef.current = true;
+    
+    if (savedPosition && scrollContainerRef.current && shouldRestore === 'true') {
+      const position = parseInt(savedPosition);
+      
+      // Wait for content to render
+      setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = position;
+        }
+      }, 100);
+    }
+    
+    // Always clear the flag after checking
+    sessionStorage.setItem('homeScrollSaved', 'false');
+  }, [posts]);
+
+  // Save scroll position on scroll (but not during restoration)
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // Wait a bit before starting to track scroll (avoid capturing restoration scroll)
+    const startTrackingTimeout = setTimeout(() => {
+      let scrollTimeout: NodeJS.Timeout;
+      const handleScroll = () => {
+        // Only save if we're not in the middle of restoration
+        if (!hasRestoredRef.current) return;
+        
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          sessionStorage.setItem('homeScrollPosition', container.scrollTop.toString());
+          sessionStorage.setItem('homeScrollTimestamp', Date.now().toString());
+          sessionStorage.setItem('homeScrollSaved', 'true');
+        }, 200);
+      };
+
+      container.addEventListener('scroll', handleScroll, { passive: true });
+      
+      return () => {
+        clearTimeout(scrollTimeout);
+        container.removeEventListener('scroll', handleScroll);
+      };
+    }, 500);
+
+    return () => {
+      clearTimeout(startTrackingTimeout);
+      // Save final position when component unmounts (navigating away)
+      if (container.scrollTop > 0 && hasRestoredRef.current) {
+        sessionStorage.setItem('homeScrollPosition', container.scrollTop.toString());
+        sessionStorage.setItem('homeScrollTimestamp', Date.now().toString());
+        sessionStorage.setItem('homeScrollSaved', 'true');
+      }
+    };
+  }, [posts]);
 
   // Fetch vibe stats
   useEffect(() => {
@@ -75,7 +149,7 @@ const Home = () => {
 
   return (
     <div className="flex flex-1">
-      <div className="home-container">
+      <div className="home-container" ref={scrollContainerRef}>
         <div className="home-posts">
           {/* Enhanced Header */}
           <div className="glass-card p-4 rounded-xl mb-6 overflow-visible relative z-[600]">

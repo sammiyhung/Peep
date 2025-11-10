@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { GridPostList } from "@/components/shared";
+import { MasonryGrid } from "@/components/shared";
 import { useGetCurrentUser } from "@/lib/react-query/queries";
 
 const Saved = () => {
@@ -48,7 +48,7 @@ const Saved = () => {
           {savePosts.length === 0 ? (
             <p className="text-light-4">No available posts</p>
           ) : (
-            <GridPostList posts={savePosts} showStats={false} />
+            <MasonryGrid posts={savePosts} showStats={false} />
           )}
         </ul>
       )}

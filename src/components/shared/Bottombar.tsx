@@ -61,6 +61,23 @@ const Bottombar = () => {
             className={`flex-center flex-col gap-1 p-3 transition-all duration-300 relative group rounded-xl ${
               shouldShowActive ? "scale-110" : ""
             }`}
+            onClick={(e) => {
+              // If clicking Home while already on home page, scroll to top smoothly
+              if (link.route === '/' && pathname === '/') {
+                e.preventDefault();
+                const homeContainer = document.querySelector('.home-container');
+                if (homeContainer) {
+                  homeContainer.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                  });
+                }
+                // Clear saved scroll state so it doesn't restore
+                sessionStorage.setItem('homeScrollSaved', 'false');
+                sessionStorage.removeItem('homeScrollPosition');
+                sessionStorage.removeItem('homeScrollTimestamp');
+              }
+            }}
             style={{
               background: shouldShowActive 
                 ? 'rgba(255, 55, 122, 0.25)'

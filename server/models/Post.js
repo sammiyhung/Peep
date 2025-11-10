@@ -12,11 +12,24 @@ const postSchema = new mongoose.Schema({
   },
   imageUrl: {
     type: String,
-    required: true,
+    required: false, // Made optional for backward compatibility
   },
   imageId: {
     type: String,
-    required: true,
+    required: false, // Made optional for backward compatibility
+  },
+  // Multiple media support (images and videos)
+  mediaUrls: {
+    type: [String],
+    default: [],
+  },
+  mediaIds: {
+    type: [String],
+    default: [],
+  },
+  mediaTypes: {
+    type: [String], // 'image' or 'video'
+    default: [],
   },
   location: {
     type: String,

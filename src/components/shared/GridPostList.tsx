@@ -33,15 +33,30 @@ const GridPostList = ({
 
   return (
     <ul className="grid-container">
-      {posts.map((post) => (
-        <li key={post._id} className="relative min-w-80 h-80">
-          <Link to={`/posts/${post._id}`} className="grid-post_link">
-            <img
-              src={post.imageUrl}
-              alt="post"
-              className="h-full w-full object-cover"
-            />
-          </Link>
+      {posts.map((post) => {
+        const mediaUrl = post.mediaUrls && post.mediaUrls.length > 0 
+          ? post.mediaUrls[0] 
+          : post.imageUrl;
+        const isVideo = mediaUrl && mediaUrl.match(/\.(mp4|webm|ogg)$/i);
+        
+        return (
+          <li key={post._id} className="relative min-w-80">
+            <Link to={`/posts/${post._id}`} className="grid-post_link">
+              {isVideo ? (
+                <video
+                  src={mediaUrl}
+                  className="w-full h-auto object-cover"
+                  muted
+                  playsInline
+                />
+              ) : (
+                <img
+                  src={mediaUrl}
+                  alt="post"
+                  className="w-full h-auto object-cover"
+                />
+              )}
+            </Link>
 
           <div className="absolute bottom-0 w-full bg-gradient-to-t from-dark-3 to-transparent rounded-b-[24px] p-3 sm:p-5">
             <div className="flex flex-col gap-2 w-full">
@@ -65,8 +80,9 @@ const GridPostList = ({
               )}
             </div>
           </div>
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ul>
   );
 };

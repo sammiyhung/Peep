@@ -38,7 +38,27 @@ const LeftSidebar = () => {
         {/* Logo and Toggle */}
         <div className={`flex items-center ${isMinimized ? 'justify-center' : 'justify-between'}`}>
           {!isMinimized && (
-            <Link to="/" className="flex gap-3 items-center">
+            <Link 
+              to="/" 
+              className="flex gap-3 items-center"
+              onClick={(e) => {
+                // If already on home page, scroll to top smoothly
+                if (pathname === '/') {
+                  e.preventDefault();
+                  const homeContainer = document.querySelector('.home-container');
+                  if (homeContainer) {
+                    homeContainer.scrollTo({
+                      top: 0,
+                      behavior: 'smooth'
+                    });
+                  }
+                  // Clear saved scroll state so it doesn't restore
+                  sessionStorage.setItem('homeScrollSaved', 'false');
+                  sessionStorage.removeItem('homeScrollPosition');
+                  sessionStorage.removeItem('homeScrollTimestamp');
+                }
+              }}
+            >
               <img
                 src="/assets/images/logo.png"
                 alt="logo"
@@ -110,6 +130,23 @@ const LeftSidebar = () => {
                     isMinimized ? 'justify-center' : 'gap-6'
                   }`}
                   title={isMinimized ? link.label : undefined}
+                  onClick={(e) => {
+                    // If clicking Home while already on home page, scroll to top smoothly
+                    if (link.route === '/' && pathname === '/') {
+                      e.preventDefault();
+                      const homeContainer = document.querySelector('.home-container');
+                      if (homeContainer) {
+                        homeContainer.scrollTo({
+                          top: 0,
+                          behavior: 'smooth'
+                        });
+                      }
+                      // Clear saved scroll state so it doesn't restore
+                      sessionStorage.setItem('homeScrollSaved', 'false');
+                      sessionStorage.removeItem('homeScrollPosition');
+                      sessionStorage.removeItem('homeScrollTimestamp');
+                    }
+                  }}
                 >
                   <img
                     src={link.imgURL}

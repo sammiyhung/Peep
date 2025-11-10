@@ -10,7 +10,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { useUserContext } from '@/context/AuthContext';
-import GridPostList from '@/components/shared/GridPostList';
+import { MasonryGrid } from '@/components/shared';
 import { Loader } from '@/components/shared';
 
 const CircleDetails = () => {
@@ -286,7 +286,7 @@ const CircleDetails = () => {
               )}
             </div>
           ) : (
-            <GridPostList posts={posts} showStats={true} />
+            <MasonryGrid posts={posts} showStats={true} />
           )}
         </div>
       </div>
