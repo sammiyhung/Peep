@@ -4,6 +4,7 @@ const Post = require('../models/Post');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { awardEnergy } = require('../utils/energyManager');
+const { notifyComment } = require('../utils/notificationHelper');
 
 const router = express.Router();
 
@@ -41,6 +42,10 @@ router.post('/', auth, async (req, res) => {
     // Award energy to post creator (small amount for engagement)
     if (post.creator.toString() !== userId) {
       await awardEnergy(post.creator, 2, 'Comment received');
+      
+      // Notify post owner about comment
+      notifyComment(post.creator.toString(), userId, postId, text, req.app.get('io'))
+        .catch(err => console.error('Notify comment error:', err));
     }
 
     // Populate user data before sending response

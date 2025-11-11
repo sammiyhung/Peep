@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, UserCheck, UserX, Clock, Loader2, Users } from 'lucide-react';
+import { Sparkles, UserCheck, UserX, Clock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import {
@@ -125,17 +125,17 @@ const VibeButton = ({
     );
   }
 
-  // Already peeps
+  // Already peeps - show "Vibing" state
   if (vibeStatus?.status === 'accepted') {
     return (
       <Button
         variant="outline"
         size={size}
         disabled
-        className={`${className} bg-dark-3 border-dark-4 text-light-3 cursor-not-allowed`}
+        className={`${className} bg-gradient-to-r from-pink-600/20 to-purple-600/20 border-pink-500 text-pink-400 cursor-default hover:from-pink-600/30 hover:to-purple-600/30`}
       >
-        <Users className="w-4 h-4 sm:hidden" />
-        <span>Peeps</span>
+        <Sparkles className="w-4 h-4 sm:hidden animate-pulse" />
+        <span className="font-semibold">Vibing</span>
       </Button>
     );
   }

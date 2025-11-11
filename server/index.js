@@ -2,7 +2,9 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const compression = require('compression');
 const mongoose = require('mongoose');
+const { notifyMessage } = require('./utils/notificationHelper');
 require('dotenv').config();
 
 // Import routes
@@ -17,6 +19,7 @@ const circleRoutes = require('./routes/circles');
 const commentRoutes = require('./routes/comments');
 const vibeRequestRoutes = require('./routes/vibeRequests');
 const notificationRoutes = require('./routes/notifications');
+const pushNotificationRoutes = require('./routes/pushNotifications');
 
 // Import models
 const Message = require('./models/Message');
@@ -28,6 +31,7 @@ const { startCircleCleanupJob } = require('./utils/circleCleanup');
 const app = express();
 
 // Middleware
+app.use(compression()); // Enable gzip compression
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -56,6 +60,7 @@ app.use('/api/circles', circleRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/vibe-requests', vibeRequestRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/push', pushNotificationRoutes);
 
 // Health check route
 app.get('/', (req, res) => {
@@ -128,6 +133,11 @@ io.on('connection', (socket) => {
         
         // Notify receiver that unread count changed
         io.to(receiverSocketId).emit('unreadCountChanged');
+        
+        // Create notification for message (async, don't wait)
+        notifyMessage(receiverId, senderId, message, io)
+          .catch(err => console.error('Notify message error:', err));
+          
         console.log(`Real-time message from ${senderId} to ${receiverId}`);
       }
 

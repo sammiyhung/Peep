@@ -230,6 +230,16 @@ const userSchema = new mongoose.Schema({
     likeNotif: { type: Boolean, default: false },
     commentNotif: { type: Boolean, default: true },
   },
+  // Push Notification Subscriptions
+  pushSubscriptions: [{
+    endpoint: { type: String, required: true },
+    keys: {
+      p256dh: { type: String, required: true },
+      auth: { type: String, required: true }
+    },
+    userAgent: String,
+    createdAt: { type: Date, default: Date.now }
+  }],
 }, {
   timestamps: true,
 });

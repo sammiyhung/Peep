@@ -5,11 +5,15 @@ import Topbar from "@/components/shared/Topbar";
 import Bottombar from "@/components/shared/Bottombar";
 import LeftSidebar from "@/components/shared/LeftSidebar";
 import ChatSidebar from "@/components/shared/ChatSidebar";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 const RootLayout = () => {
   const location = useLocation();
   const isChatPage = location.pathname.startsWith('/chat/');
   const [isChatMinimized, setIsChatMinimized] = useState(false);
+  
+  // Monitor network status
+  useNetworkStatus();
   
   return (
     <div className="w-full md:flex">

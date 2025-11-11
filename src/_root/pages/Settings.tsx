@@ -12,6 +12,7 @@ import {
   useGetNotificationSettings,
   useUpdateNotificationSettings 
 } from '@/lib/react-query/queries';
+import PushNotificationSettings from '@/components/shared/PushNotificationSettings';
 
 type SettingsTab = 'account' | 'privacy' | 'notifications' | 'preferences' | 'security';
 
@@ -312,6 +313,9 @@ const Settings = () => {
               <p className="text-sm text-light-3 mb-6">Choose what notifications you want to receive</p>
               
               <div className="space-y-4">
+                {/* Push Notification Settings Component */}
+                <PushNotificationSettings />
+
                 <div className="glass-card p-4 rounded-lg">
                   <h4 className="text-sm font-semibold text-light-1 mb-4">General</h4>
                   <div className="space-y-3">

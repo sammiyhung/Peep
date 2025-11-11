@@ -3,6 +3,7 @@ const User = require('../models/User');
 const VibeRequest = require('../models/VibeRequest');
 const Notification = require('../models/Notification');
 const auth = require('../middleware/auth');
+const { notifyVibeRequest, notifyVibeAccepted } = require('../utils/notificationHelper');
 
 const router = express.Router();
 
@@ -88,17 +89,9 @@ router.post('/send', auth, async (req, res) => {
       existingRequest.respondedAt = null;
       await existingRequest.save();
 
-      // Create notification
-      await createNotification(
-        receiverId,
-        senderId,
-        'vibe_request',
-        'New Vibe Request',
-        `${sender.name} wants to vibe with you!`,
-        `/profile/${senderId}`,
-        existingRequest._id,
-        'VibeRequest'
-      );
+      // Create notification using helper
+      notifyVibeRequest(receiverId, senderId, req.app.get('io'))
+        .catch(err => console.error('Notify vibe request error:', err));
 
       return res.status(200).json({
         message: 'Vibe request sent successfully',
@@ -115,17 +108,9 @@ router.post('/send', auth, async (req, res) => {
 
     await vibeRequest.save();
 
-    // Create notification
-    await createNotification(
-      receiverId,
-      senderId,
-      'vibe_request',
-      'New Vibe Request',
-      `${sender.name} wants to vibe with you!`,
-      `/profile/${senderId}`,
-      vibeRequest._id,
-      'VibeRequest'
-    );
+    // Create notification using helper
+    notifyVibeRequest(receiverId, senderId, req.app.get('io'))
+      .catch(err => console.error('Notify vibe request error:', err));
 
     res.status(201).json({
       message: 'Vibe request sent successfully',
@@ -173,17 +158,9 @@ router.post('/accept/:requestId', auth, async (req, res) => {
 
     const receiver = await User.findById(vibeRequest.receiver);
 
-    // Create notification for sender
-    await createNotification(
-      vibeRequest.sender,
-      vibeRequest.receiver,
-      'vibe_accepted',
-      'Vibe Accepted',
-      `${receiver.name} accepted your vibe request. You are now peeps!`,
-      `/profile/${vibeRequest.receiver}`,
-      vibeRequest._id,
-      'VibeRequest'
-    );
+    // Create notification for sender using helper
+    notifyVibeAccepted(vibeRequest.sender.toString(), vibeRequest.receiver.toString(), req.app.get('io'))
+      .catch(err => console.error('Notify vibe accepted error:', err));
 
     res.json({
       message: 'Vibe accepted. You are now peeps!',

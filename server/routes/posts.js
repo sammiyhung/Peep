@@ -7,6 +7,7 @@ const auth = require('../middleware/auth');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 const { spendEnergy, awardEnergy, regenerateEnergy, ENERGY_CONFIG } = require('../utils/energyManager');
 const { calculateTrendingScore } = require('../utils/trendingCalculator');
+const { notifyNewPost, notifyLike, notifyComment } = require('../utils/notificationHelper');
 
 const router = express.Router();
 
@@ -119,6 +120,11 @@ router.post('/', auth, upload.array('files', 10), async (req, res) => {
 
     // Populate creator info
     await newPost.populate('creator', '-password');
+
+    // Notify followers about new post (async, don't wait)
+    notifyNewPost(req.userId, newPost, req.app.get('io')).catch(err => 
+      console.error('Notify new post error:', err)
+    );
 
     res.status(201).json({
       ...newPost.toObject(),
@@ -367,6 +373,12 @@ router.put('/:id/like', auth, async (req, res) => {
         // Add to liked array
         user.liked.push(req.params.id);
         await user.save();
+        
+        // Notify post owner about like
+        if (post.creator._id.toString() !== req.userId) {
+          notifyLike(post.creator._id.toString(), req.userId, req.params.id, req.app.get('io'))
+            .catch(err => console.error('Notify like error:', err));
+        }
       } else if (!isLiked && user.liked.includes(req.params.id)) {
         // Remove from liked array
         user.liked = user.liked.filter(id => id.toString() !== req.params.id);

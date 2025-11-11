@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
+const { notifyFollow } = require('../utils/notificationHelper');
 
 const router = express.Router();
 
@@ -558,6 +559,10 @@ router.post('/:id/follow', auth, async (req, res) => {
       
       await currentUser.save();
       await targetUser.save();
+
+      // Notify target user about new follower
+      notifyFollow(targetUserId, currentUserId, req.app.get('io'))
+        .catch(err => console.error('Notify follow error:', err));
 
       return res.json({ 
         message: 'Followed successfully',

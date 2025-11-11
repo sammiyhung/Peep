@@ -21,6 +21,7 @@
     "axios": "^1.6.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "compression": "^1.8.1",
     "eslint-config-prettier": "^9.0.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-tailwindcss": "^3.13.0",
@@ -37,6 +38,8 @@
     "solidjs-dropzone": "^1.0.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
+    "terser": "^5.44.1",
+    "web-push": "^3.6.7",
     "zod": "^3.22.4"
   },
   "devDependencies": {
