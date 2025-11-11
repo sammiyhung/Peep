@@ -123,6 +123,10 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   }],
+  peeps: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }],
   // Peep Energy System
   energy: {
     type: Number,
@@ -215,6 +219,16 @@ const userSchema = new mongoose.Schema({
     openToCoffeeChat: { type: Boolean, default: true },
     openToCollaboration: { type: Boolean, default: true },
     preferredMoods: [String],
+  },
+  // Notification Settings
+  notificationSettings: {
+    emailNotifications: { type: Boolean, default: true },
+    pushNotifications: { type: Boolean, default: true },
+    vibeRequestNotif: { type: Boolean, default: true },
+    messageNotif: { type: Boolean, default: true },
+    followNotif: { type: Boolean, default: true },
+    likeNotif: { type: Boolean, default: false },
+    commentNotif: { type: Boolean, default: true },
   },
 }, {
   timestamps: true,

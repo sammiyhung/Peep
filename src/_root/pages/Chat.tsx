@@ -1379,11 +1379,11 @@ const Chat = () => {
             value={newMessage}
             onChange={handleInputChange}
             placeholder="Type your message..."
-            className="message-input w-full p-2 text-white bg-gray-800 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="message-input w-full p-2 text-white bg-gray-800 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
           <button
             type="submit"
-            className="bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-2 rounded-md text-white hover:scale-105 transition-all shadow-lg"
+            className="bg-gradient-to-r from-secondary-500 to-primary-600 px-4 py-2 rounded-xl text-white hover:scale-105 transition-all shadow-lg"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
               <path d="M24 0l-6 22-8.129-7.239 7.802-8.234-10.458 7.227-7.215-1.754 24-12zm-15 16.668v7.332l3.258-4.431-3.258-2.901z"/>

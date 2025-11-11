@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Sparkles, RefreshCw, TrendingUp } from 'lucide-react';
 import { api } from '@/lib/api/config';
 
 interface VibeMatch {
@@ -45,12 +46,12 @@ const VibeMatches = () => {
     return 'linear-gradient(135deg, #6b7280, #4b5563)';
   };
 
-  const getScoreEmoji = (score: number) => {
-    if (score >= 90) return '🔥';
-    if (score >= 75) return '✨';
-    if (score >= 60) return '💫';
-    if (score >= 40) return '👋';
-    return '🌱';
+  const getScoreIcon = (score: number) => {
+    if (score >= 90) return <TrendingUp className="w-3 h-3" />;
+    if (score >= 75) return <Sparkles className="w-3 h-3" />;
+    if (score >= 60) return <Sparkles className="w-3 h-3" />;
+    if (score >= 40) return <TrendingUp className="w-3 h-3" />;
+    return <TrendingUp className="w-3 h-3" />;
   };
 
   if (isLoading) {
@@ -77,79 +78,71 @@ const VibeMatches = () => {
   }
 
   return (
-    <div className="glass-card p-6 rounded-xl animate-fade-in">
+    <div className="w-full mb-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">✨</span>
-          <h3 className="text-lg font-bold text-light-1">Your Vibe Matches</h3>
+          <div className="p-2 bg-gradient-to-br from-primary-500/20 to-pink-500/20 rounded-lg">
+            <Sparkles className="w-5 h-5 text-primary-500" />
+          </div>
+          <h3 className="text-base md:text-lg font-bold text-light-1">Vibe Matches</h3>
         </div>
         <button
           onClick={fetchVibeMatches}
-          className="text-xs text-primary-500 hover:text-primary-400 transition-colors"
+          className="flex items-center gap-1 text-xs text-primary-500 hover:text-primary-400 transition-colors px-2 py-1 rounded hover:bg-dark-4"
         >
-          Refresh
+          <RefreshCw className="w-3 h-3" />
+          <span className="hidden sm:inline">Refresh</span>
         </button>
       </div>
 
-      {/* Matches List */}
-      <div className="space-y-3">
-        {matches.slice(0, 10).map((match) => (
+      {/* Matches Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {matches.slice(0, 12).map((match) => (
           <Link
             key={match._id}
             to={`/profile/${match._id}`}
-            className="block glass-card p-4 rounded-lg hover:scale-[1.02] transition-all duration-300 group"
+            className="glass-card p-4 rounded-xl hover:scale-[1.02] transition-all duration-300 group hover:border-primary-500/30 flex flex-col items-center text-center"
           >
-            <div className="flex items-center gap-3">
-              {/* Avatar */}
-              <div className="relative">
-                <img
-                  src={match.imageUrl || '/assets/icons/profile-placeholder.svg'}
-                  alt={match.name}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-                <div
-                  className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 border-dark-1"
-                  style={{
-                    background: getScoreGradient(match.vibeMatchScore),
-                  }}
-                >
-                  {match.vibeMatchScore}
-                </div>
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm font-semibold text-light-1 truncate">
-                    {match.name}
-                  </p>
-                  <span className="text-xs text-light-4">Lv.{match.level}</span>
-                </div>
-                <p className="text-xs text-light-3 truncate">@{match.username}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-gradient-to-r from-primary-500/20 to-primary-600/20 text-primary-400">
-                    {getScoreEmoji(match.vibeMatchScore)} {match.vibeMatchLabel}
-                  </span>
-                </div>
-              </div>
-
-              {/* Arrow */}
-              <svg
-                className="w-5 h-5 text-light-4 group-hover:text-primary-500 group-hover:translate-x-1 transition-all duration-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            {/* Avatar */}
+            <div className="relative mb-3">
+              <img
+                src={match.imageUrl || '/assets/icons/profile-placeholder.svg'}
+                alt={match.name}
+                className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover ring-2 ring-dark-4 group-hover:ring-primary-500/50 transition-all"
+              />
+              <div
+                className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 border-dark-1 shadow-lg"
+                style={{
+                  background: getScoreGradient(match.vibeMatchScore),
+                }}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+                {match.vibeMatchScore}
+              </div>
+            </div>
+
+            {/* Info */}
+            <div className="w-full">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <p className="text-sm md:text-base font-semibold text-light-1 truncate">
+                  {match.name}
+                </p>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-dark-4 text-light-3 flex-shrink-0">Lv.{match.level}</span>
+              </div>
+              <p className="text-xs text-light-3 truncate mb-2">@{match.username}</p>
+              <div className="flex items-center justify-center">
+                <span className="inline-flex items-center gap-1 text-[10px] md:text-xs px-2 py-1 rounded-full bg-gradient-to-r from-primary-500/20 to-pink-500/20 text-primary-400 font-medium">
+                  {getScoreIcon(match.vibeMatchScore)}
+                  {match.vibeMatchLabel}
+                </span>
+              </div>
             </div>
           </Link>
         ))}
       </div>
 
       {/* View All */}
-      {matches.length > 10 && (
+      {matches.length > 12 && (
         <button className="w-full mt-4 py-2 text-sm text-primary-500 hover:text-primary-400 transition-colors">
           View all {matches.length} matches →
         </button>

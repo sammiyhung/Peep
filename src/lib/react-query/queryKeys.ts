@@ -17,4 +17,20 @@ export enum QUERY_KEYS {
 
   //  SEARCH KEYS
   SEARCH_POSTS = "getSearchPosts",
+
+  // VIBE REQUEST KEYS
+  GET_RECEIVED_VIBE_REQUESTS = "getReceivedVibeRequests",
+  GET_SENT_VIBE_REQUESTS = "getSentVibeRequests",
+  GET_VIBE_REQUEST_STATUS = "getVibeRequestStatus",
+
+  // NOTIFICATION KEYS
+  GET_NOTIFICATIONS = "getNotifications",
+  GET_UNREAD_NOTIFICATIONS_COUNT = "getUnreadNotificationsCount",
+  MARK_NOTIFICATION_AS_READ = "markNotificationAsRead",
+  MARK_ALL_NOTIFICATIONS_AS_READ = "markAllNotificationsAsRead",
+  DELETE_NOTIFICATION = "deleteNotification",
+  CLEAR_ALL_NOTIFICATIONS = "clearAllNotifications",
+  GET_NOTIFICATION_SETTINGS = "getNotificationSettings",
+  UPDATE_NOTIFICATION_SETTINGS = "updateNotificationSettings",
+  CHANGE_PASSWORD = "changePassword",
 }

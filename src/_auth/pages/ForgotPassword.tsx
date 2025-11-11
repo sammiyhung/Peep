@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Mail, ChevronLeft, CheckCircle2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -77,7 +77,7 @@ const ForgotPassword = () => {
             <div className="flex flex-col gap-3 w-full mt-6">
               <Link to="/sign-in" className="w-full">
                 <Button className="shad-button_primary w-full">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <ChevronLeft className="w-4 h-4 mr-2" />
                   Back to Login
                 </Button>
               </Link>
@@ -151,7 +151,7 @@ const ForgotPassword = () => {
 
               <Link to="/sign-in" className="w-full">
                 <Button type="button" className="shad-button_ghost w-full">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <ChevronLeft className="w-4 h-4 mr-2" />
                   Back to Login
                 </Button>
               </Link>

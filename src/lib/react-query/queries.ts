@@ -25,6 +25,23 @@ import {
   searchPosts,
   savePost,
   deleteSavedPost,
+  sendVibeRequest,
+  acceptVibeRequest,
+  rejectVibeRequest,
+  cancelVibeRequest,
+  getReceivedVibeRequests,
+  getSentVibeRequests,
+  getVibeRequestStatus,
+  removePeep,
+  getNotifications,
+  getUnreadNotificationsCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+  clearAllNotifications,
+  changePassword,
+  getNotificationSettings,
+  updateNotificationSettings,
 } from "@/lib/api/api";
 import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
 
@@ -240,6 +257,205 @@ export const useUpdateUser = () => {
       });
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_USER_BY_ID, data?._id],
+      });
+    },
+  });
+};
+
+// ============================================================
+// VIBE REQUESTS QUERIES
+// ============================================================
+
+export const useSendVibeRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ receiverId, message }: { receiverId: string; message?: string }) =>
+      sendVibeRequest(receiverId, message),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_SENT_VIBE_REQUESTS],
+      });
+    },
+  });
+};
+
+export const useAcceptVibeRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (requestId: string) => acceptVibeRequest(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_RECEIVED_VIBE_REQUESTS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+      });
+    },
+  });
+};
+
+export const useRejectVibeRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (requestId: string) => rejectVibeRequest(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_RECEIVED_VIBE_REQUESTS],
+      });
+    },
+  });
+};
+
+export const useCancelVibeRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (requestId: string) => cancelVibeRequest(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_SENT_VIBE_REQUESTS],
+      });
+    },
+  });
+};
+
+export const useGetReceivedVibeRequests = (status?: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_RECEIVED_VIBE_REQUESTS, status],
+    queryFn: () => getReceivedVibeRequests(status),
+  });
+};
+
+export const useGetSentVibeRequests = (status?: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_SENT_VIBE_REQUESTS, status],
+    queryFn: () => getSentVibeRequests(status),
+  });
+};
+
+export const useGetVibeRequestStatus = (userId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_VIBE_REQUEST_STATUS, userId],
+    queryFn: () => getVibeRequestStatus(userId),
+    enabled: !!userId,
+  });
+};
+
+export const useRemovePeep = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => removePeep(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+      });
+    },
+  });
+};
+
+// ============================================================
+// NOTIFICATIONS QUERIES
+// ============================================================
+
+export const useGetNotifications = (limit = 50, skip = 0, unreadOnly = false) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_NOTIFICATIONS, limit, skip, unreadOnly],
+    queryFn: () => getNotifications(limit, skip, unreadOnly),
+  });
+};
+
+export const useGetUnreadNotificationsCount = () => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_UNREAD_NOTIFICATIONS_COUNT],
+    queryFn: getUnreadNotificationsCount,
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+};
+
+export const useMarkNotificationAsRead = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (notificationId: string) => markNotificationAsRead(notificationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_NOTIFICATIONS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_UNREAD_NOTIFICATIONS_COUNT],
+      });
+    },
+  });
+};
+
+export const useMarkAllNotificationsAsRead = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: markAllNotificationsAsRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_NOTIFICATIONS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_UNREAD_NOTIFICATIONS_COUNT],
+      });
+    },
+  });
+};
+
+export const useDeleteNotification = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (notificationId: string) => deleteNotification(notificationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_NOTIFICATIONS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_UNREAD_NOTIFICATIONS_COUNT],
+      });
+    },
+  });
+};
+
+export const useClearAllNotifications = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: clearAllNotifications,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_NOTIFICATIONS],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_UNREAD_NOTIFICATIONS_COUNT],
+      });
+    },
+  });
+};
+
+// ============================================================
+// SETTINGS QUERIES
+// ============================================================
+
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) =>
+      changePassword(currentPassword, newPassword),
+  });
+};
+
+export const useGetNotificationSettings = () => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_NOTIFICATION_SETTINGS],
+    queryFn: getNotificationSettings,
+  });
+};
+
+export const useUpdateNotificationSettings = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateNotificationSettings,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_NOTIFICATION_SETTINGS],
       });
     },
   });

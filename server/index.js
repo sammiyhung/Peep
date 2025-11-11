@@ -15,6 +15,8 @@ const vibeRoutes = require('./routes/vibe');
 const trendingRoutes = require('./routes/trending');
 const circleRoutes = require('./routes/circles');
 const commentRoutes = require('./routes/comments');
+const vibeRequestRoutes = require('./routes/vibeRequests');
+const notificationRoutes = require('./routes/notifications');
 
 // Import models
 const Message = require('./models/Message');
@@ -52,6 +54,8 @@ app.use('/api/vibe', vibeRoutes);
 app.use('/api/trending', trendingRoutes);
 app.use('/api/circles', circleRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/vibe-requests', vibeRequestRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check route
 app.get('/', (req, res) => {
@@ -84,6 +88,7 @@ io.on('connection', (socket) => {
   // Handle user joining a chat
   socket.on('join', (userId) => {
     users[userId] = socket.id;
+    socket.join(userId); // Join a room with their userId for notifications
     console.log(`User ${userId} joined with socket ID ${socket.id}`);
   });
 
@@ -219,6 +224,9 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Something went wrong!' });
 });
+
+// Export io for use in routes
+module.exports.io = io;
 
 // Start the server
 const PORT = process.env.PORT || 10000;

@@ -16,3 +16,6 @@ export { default as CircleDetails } from "./CircleDetails";
 export { default as CreateCirclePost } from "./CreateCirclePost";
 export { default as Followers } from "./Followers";
 export { default as Following } from "./Following";
+export { default as Vibes } from "./Vibes";
+export { default as Notifications } from "./Notifications";
+export { default as Settings } from "./Settings";

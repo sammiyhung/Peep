@@ -8,8 +8,8 @@ export type IUpdateUser = {
   userId: string;
   name: string;
   bio: string;
-  imageId: string;
-  imageUrl: string;
+  imageId?: string;
+  imageUrl?: string;
   file: File[];
   username?: string;
   currentMood?: string;
@@ -30,6 +30,12 @@ export type IUpdateUser = {
   showPhone?: boolean;
   showLocation?: boolean;
   showDateOfBirth?: boolean;
+  // Preferences
+  preferences?: {
+    openToCoffeeChat?: boolean;
+    openToCollaboration?: boolean;
+    preferredMoods?: string[];
+  };
 };
 
 export type INewPost = {
@@ -78,6 +84,19 @@ export type IUser = {
   showPhone?: boolean;
   showLocation?: boolean;
   showDateOfBirth?: boolean;
+  // Gamification
+  level?: number;
+  energy?: number;
+  // Social
+  peeps?: string[];
+  followers?: string[];
+  following?: string[];
+  // Preferences
+  preferences?: {
+    openToCoffeeChat?: boolean;
+    openToCollaboration?: boolean;
+    preferredMoods?: string[];
+  };
 };
 
 export type INewUser = {

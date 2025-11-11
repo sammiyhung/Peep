@@ -52,7 +52,9 @@ const Bottombar = () => {
         const isChatsRoute = link.label === 'Chats' && (pathname === '/chats' || pathname.startsWith('/chat/'));
         // Make Circles tab active for all circle routes
         const isCirclesRoute = link.label === 'Circles' && pathname.startsWith('/circles');
-        const shouldShowActive = link.label === 'Chats' ? isChatsRoute : link.label === 'Circles' ? isCirclesRoute : isActive;
+        // Make Peeps tab active for /all-users and /vibes routes (since vibes is inside peeps on mobile)
+        const isPeepsRoute = link.label === 'Peeps' && (pathname === '/all-users' || pathname === '/vibes');
+        const shouldShowActive = link.label === 'Chats' ? isChatsRoute : link.label === 'Circles' ? isCirclesRoute : link.label === 'Peeps' ? isPeepsRoute : isActive;
 
         return (
           <Link

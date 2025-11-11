@@ -16,6 +16,9 @@ import {
   CreateCircle,
   CircleDetails,
   CreateCirclePost,
+  Vibes,
+  Notifications,
+  Settings,
 } from "@/_root/pages";
 import AuthLayout from "./_auth/AuthLayout";
 import PublicLayout from "./_auth/PublicLayout";
@@ -55,6 +58,9 @@ const App = () => {
           <Route index element={<Home />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/saved" element={<Saved />} />
+          <Route path="/vibes" element={<Vibes />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/chats" element={<ChatList />} />
           <Route path="/chat/:userId" element={<Chat />} />
           <Route path="/all-users" element={<AllUsers />} />

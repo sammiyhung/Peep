@@ -14,7 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui";
 import { useUserContext } from "@/context/AuthContext";
 import { useGetUserById } from "@/lib/react-query/queries";
-import { MasonryGrid, Loader, ImageViewer } from "@/components/shared";
+import { MasonryGrid, Loader, ImageViewer, VibeButton } from "@/components/shared";
 import { followUser, requestCoffeeChat, sendCollaborationRequest } from "@/lib/api/api";
 import { useToast } from "@/components/ui/use-toast";
 import { QUERY_KEYS } from "@/lib/react-query/queryKeys";
@@ -277,16 +277,13 @@ const Profile = () => {
             {/* Other User Actions */}
             <div className={`${user.id === id && "hidden"} flex flex-col gap-2 w-full xl:w-auto xl:min-w-[240px]`}>
               <div className="flex gap-2">
-                <Button
-                  type="button"
+                <VibeButton
+                  userId={currentUser._id}
+                  variant="default"
                   size="sm"
-                  className="shad-button_primary px-5 flex items-center gap-2 flex-1"
-                  onClick={() => navigate(`/chat/${currentUser._id}`)}
-                  disabled={isLoadingAction}
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Chat
-                </Button>
+                  showLabel={true}
+                  className="flex-1"
+                />
                 <Button
                   type="button"
                   size="sm"
@@ -312,6 +309,17 @@ const Profile = () => {
                   )}
                 </Button>
               </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="px-5 flex items-center gap-2 bg-dark-4 border-dark-4 hover:bg-dark-3 w-full"
+                onClick={() => navigate(`/chat/${currentUser._id}`)}
+                disabled={isLoadingAction}
+              >
+                <MessageCircle className="w-4 h-4" />
+                Chat
+              </Button>
               <Button
                 type="button"
                 size="sm"

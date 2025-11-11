@@ -1,6 +1,6 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { UserPlus, UserMinus, MessageCircle } from 'lucide-react';
+import { UserPlus, UserMinus } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '../ui/button';
@@ -8,6 +8,7 @@ import { followUser } from '@/lib/api/api';
 import { useUserContext } from '@/context/AuthContext';
 import { useToast } from '../ui/use-toast';
 import { QUERY_KEYS } from '@/lib/react-query/queryKeys';
+import VibeButton from './VibeButton';
 
 type UserCardProps = {
   user: any;
@@ -16,7 +17,6 @@ type UserCardProps = {
 };
 
 const UserCard = ({ user, onFollowChange, isFollowingContext = false }: UserCardProps) => {
-  const navigate = useNavigate();
   const { user: currentUser } = useUserContext();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -98,15 +98,13 @@ const UserCard = ({ user, onFollowChange, isFollowingContext = false }: UserCard
       {/* Action Buttons */}
       {!isOwnProfile && (
         <div className="flex gap-2 mt-3 w-full">
-          <Button
-            type="button"
+          <VibeButton
+            userId={user._id}
+            variant="default"
             size="sm"
-            className="shad-button_primary px-3 flex-1 flex items-center justify-center gap-1"
-            onClick={() => navigate(`/chat/${user._id}`)}
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span className="hidden sm:inline">Chat</span>
-          </Button>
+            showLabel={true}
+            className="flex-1"
+          />
           <Button
             type="button"
             size="sm"
@@ -122,12 +120,12 @@ const UserCard = ({ user, onFollowChange, isFollowingContext = false }: UserCard
             {isFollowing ? (
               <>
                 <UserMinus className="w-4 h-4" />
-                <span className="hidden sm:inline">Unfollow</span>
+                <span className="sm:inline">Unfollow</span>
               </>
             ) : (
               <>
                 <UserPlus className="w-4 h-4" />
-                <span className="hidden sm:inline">Follow</span>
+                <span className="sm:inline">Follow</span>
               </>
             )}
           </Button>

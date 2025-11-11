@@ -323,8 +323,13 @@ export async function updateUser(user: IUpdateUser) {
     const formData = new FormData();
     formData.append('name', user.name);
     formData.append('bio', user.bio);
-    formData.append('imageUrl', user.imageUrl);
-    formData.append('imageId', user.imageId);
+    
+    if (user.imageUrl) {
+      formData.append('imageUrl', user.imageUrl);
+    }
+    if (user.imageId) {
+      formData.append('imageId', user.imageId);
+    }
     
     if (user.username) {
       formData.append('username', user.username);
@@ -374,6 +379,11 @@ export async function updateUser(user: IUpdateUser) {
     formData.append('showPhone', String(user.showPhone ?? false));
     formData.append('showLocation', String(user.showLocation ?? true));
     formData.append('showDateOfBirth', String(user.showDateOfBirth ?? false));
+    
+    // Preferences
+    if (user.preferences) {
+      formData.append('preferences', JSON.stringify(user.preferences));
+    }
     
     if (user.file.length > 0) {
       formData.append('file', user.file[0]);
@@ -663,5 +673,211 @@ export async function deleteComment(commentId: string) {
   } catch (error: any) {
     console.log(error);
     throw error.response?.data?.message || 'Error deleting comment';
+  }
+}
+
+// ============================================================
+// VIBE REQUESTS
+// ============================================================
+
+// ============================== SEND VIBE REQUEST
+export async function sendVibeRequest(receiverId: string, message?: string) {
+  try {
+    const response = await api.post('/api/vibe-requests/send', { receiverId, message });
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error sending vibe request';
+  }
+}
+
+// ============================== ACCEPT VIBE REQUEST
+export async function acceptVibeRequest(requestId: string) {
+  try {
+    const response = await api.post(`/api/vibe-requests/accept/${requestId}`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error accepting vibe request';
+  }
+}
+
+// ============================== REJECT VIBE REQUEST
+export async function rejectVibeRequest(requestId: string) {
+  try {
+    const response = await api.post(`/api/vibe-requests/reject/${requestId}`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error rejecting vibe request';
+  }
+}
+
+// ============================== CANCEL VIBE REQUEST
+export async function cancelVibeRequest(requestId: string) {
+  try {
+    const response = await api.delete(`/api/vibe-requests/cancel/${requestId}`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error cancelling vibe request';
+  }
+}
+
+// ============================== GET RECEIVED VIBE REQUESTS
+export async function getReceivedVibeRequests(status?: string) {
+  try {
+    const response = await api.get('/api/vibe-requests/received', {
+      params: { status },
+    });
+    return response.data.vibeRequests;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error fetching received vibe requests';
+  }
+}
+
+// ============================== GET SENT VIBE REQUESTS
+export async function getSentVibeRequests(status?: string) {
+  try {
+    const response = await api.get('/api/vibe-requests/sent', {
+      params: { status },
+    });
+    return response.data.vibeRequests;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error fetching sent vibe requests';
+  }
+}
+
+// ============================== GET VIBE REQUEST STATUS
+export async function getVibeRequestStatus(userId: string) {
+  try {
+    const response = await api.get(`/api/vibe-requests/status/${userId}`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error checking vibe request status';
+  }
+}
+
+// ============================== REMOVE PEEP
+export async function removePeep(userId: string) {
+  try {
+    const response = await api.delete(`/api/vibe-requests/remove-peep/${userId}`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error removing peep';
+  }
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+// ============================== GET NOTIFICATIONS
+export async function getNotifications(limit = 50, skip = 0, unreadOnly = false) {
+  try {
+    const response = await api.get('/api/notifications', {
+      params: { limit, skip, unreadOnly },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error fetching notifications';
+  }
+}
+
+// ============================== GET UNREAD COUNT
+export async function getUnreadNotificationsCount() {
+  try {
+    const response = await api.get('/api/notifications/unread-count');
+    return response.data.count;
+  } catch (error: any) {
+    console.log(error);
+    return 0;
+  }
+}
+
+// ============================== MARK NOTIFICATION AS READ
+export async function markNotificationAsRead(notificationId: string) {
+  try {
+    const response = await api.put(`/api/notifications/${notificationId}/read`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error marking notification as read';
+  }
+}
+
+// ============================== MARK ALL NOTIFICATIONS AS READ
+export async function markAllNotificationsAsRead() {
+  try {
+    const response = await api.put('/api/notifications/mark-all-read');
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error marking all notifications as read';
+  }
+}
+
+// ============================== DELETE NOTIFICATION
+export async function deleteNotification(notificationId: string) {
+  try {
+    const response = await api.delete(`/api/notifications/${notificationId}`);
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error deleting notification';
+  }
+}
+
+// ============================== CLEAR ALL NOTIFICATIONS
+export async function clearAllNotifications() {
+  try {
+    const response = await api.delete('/api/notifications/clear-all');
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error clearing all notifications';
+  }
+}
+
+// ============================== CHANGE PASSWORD
+export async function changePassword(currentPassword: string, newPassword: string) {
+  try {
+    const response = await api.put('/api/users/change-password', {
+      currentPassword,
+      newPassword,
+    });
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error changing password';
+  }
+}
+
+// ============================== GET NOTIFICATION SETTINGS
+export async function getNotificationSettings() {
+  try {
+    const response = await api.get('/api/users/notification-settings');
+    return response.data.notificationSettings;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error fetching notification settings';
+  }
+}
+
+// ============================== UPDATE NOTIFICATION SETTINGS
+export async function updateNotificationSettings(notificationSettings: any) {
+  try {
+    const response = await api.put('/api/users/notification-settings', {
+      notificationSettings,
+    });
+    return response.data;
+  } catch (error: any) {
+    console.log(error);
+    throw error.response?.data?.message || 'Error updating notification settings';
   }
 }

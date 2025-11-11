@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Bell } from "lucide-react";
 
 import { Button } from "../ui/button";
 import { useUserContext, INITIAL_USER } from "@/context/AuthContext";
-import { useSignOutAccount } from "@/lib/react-query/queries";
+import { useSignOutAccount, useGetUnreadNotificationsCount } from "@/lib/react-query/queries";
+import NotificationPanel from "./NotificationPanel";
 
 const Topbar = () => {
   const navigate = useNavigate();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const { user, setUser, setIsAuthenticated } = useUserContext();
   const { mutate: signOut } = useSignOutAccount();
+  const { data: unreadCount = 0 } = useGetUnreadNotificationsCount();
 
   const handleSignOut = () => {
     // Clear auth state first
@@ -37,23 +40,35 @@ const Topbar = () => {
 
 
         <div className="flex gap-1">
-               {/* Notifications Button */}
+          {/* Notifications Button - Navigate on mobile, panel on desktop */}
+          <Link
+            to="/notifications"
+            className="md:hidden p-2 rounded-full hover:bg-dark-4 focus:outline-none relative transition-colors"
+          >
+            <Bell className="h-6 w-6 text-light-3" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 bg-primary-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Link>
+          
           <button 
-            className="p-2 rounded-full hover:bg-gray-800 focus:outline-none relative"
+            className="hidden md:block p-2 rounded-full hover:bg-dark-4 focus:outline-none relative transition-colors"
             onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A9.965 9.965 0 0019 11V8a7 7 0 00-14 0v3a9.965 9.965 0 00.405 4.595L4 17h5m0 0v1a3 3 0 106 0v-1m-6 0h6" />
-            </svg>
-            {/* Notifications Overlay */}
-            {isNotificationsOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-50">
-                <div className="p-4">
-                    <p className="text-black-700">No notifications yet.</p>
-                </div>
-              </div>
+            <Bell className="h-6 w-6 text-light-3" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 bg-primary-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
             )}
           </button>
+          
+          <NotificationPanel 
+            isOpen={isNotificationsOpen}
+            onClose={() => setIsNotificationsOpen(false)}
+          />
 
           {/* Settings Button */}
           <Link 

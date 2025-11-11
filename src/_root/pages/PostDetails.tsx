@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Heart, Flame, Zap, Sparkles, MessageSquare } from "lucide-react";
+import { Heart, Flame, Zap, Sparkles, MessageSquare, ChevronLeft } from "lucide-react";
 
 import { Button, Textarea } from "@/components/ui";
 import { MasonryGrid, PostStats, MediaCarousel } from "@/components/shared";
@@ -124,12 +124,7 @@ const PostDetails = () => {
           onClick={() => navigate(-1)}
           variant="ghost"
           className="shad-button_ghost">
-          <img
-            src={"/assets/icons/back.svg"}
-            alt="back"
-            width={24}
-            height={24}
-          />
+          <ChevronLeft className="w-6 h-6" />
           <p className="small-medium lg:base-medium">Back</p>
         </Button>
       </div>
